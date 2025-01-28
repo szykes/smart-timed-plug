@@ -7,8 +7,8 @@
 
 #define DEBOUNCING_TIME_10_MS ((10u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
 
-// when the button is pushed, the logic sends the PUSHED event immediately
-// there is debouncing right after and then the logic checks for button state
+// When the button is pushed, the logic sends the PUSHED event immediately.
+// There is debouncing right after and then the logic checks for button state.
 typedef enum {
   BUTTON_STATE_RELEASED = 0,
   BUTTON_STATE_PUSHED = 1,
