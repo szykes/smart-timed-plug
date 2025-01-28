@@ -7,6 +7,8 @@
 #define GPIO_BTN_PLUS (1 << 3)
 #define GPIO_BTN_MINUS (1 << 4)
 
+#define TIMER_INTERRUPT_PERIOD_TIME (5u) // 5 ms
+
 void mcu_sei(void);
 void mcu_cli(void);
 
