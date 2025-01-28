@@ -1,0 +1,8 @@
+*~
+
+.cache
+
+cmake
+cmake-test
+
+compile_commands.json
