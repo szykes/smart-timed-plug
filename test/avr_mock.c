@@ -91,12 +91,19 @@ void spi_send_byte(uint8_t byte) {
 
   static uint8_t buff[OLED_ROWS][OLED_COLS];
 
+  static bool is_skip = false;
+
+  if (!is_skip && (col % 128) == 0) {
+    is_skip = true;
+    return;
+  }
+
   if (col >= OLED_COLS) {
     col = 0;
     row++;
   }
 
-  if (row >= OLED_ROWS) {
+  if (row >= (OLED_ROWS - 1) && col >= (OLED_COLS - 1)) {
     for (uint8_t line = 0; line < 8; line++) {
       for (row = 0; row < 8; row++) {
 	for (col = 0; col < OLED_COLS; col++) {
@@ -114,6 +121,8 @@ void spi_send_byte(uint8_t byte) {
   }
 
   buff[row][col] = byte;
+
+  is_skip = false;
 
   col++;
 }

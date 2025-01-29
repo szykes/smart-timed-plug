@@ -10,6 +10,7 @@ int main()
   mcu_sei();
   gpio_init();
   timer_init();
+  spi_init();
   oled_init();
   wdt_init();
 
