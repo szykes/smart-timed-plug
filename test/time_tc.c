@@ -1,4 +1,4 @@
-#include "oled.h"
+#include "time.h"
 
 #include "framework.h"
 #include "mock.h"
@@ -6,7 +6,6 @@
 static bool tc_test(void) {
   TEST_BEGIN();
 
-  oled_update_screen();
 
   TEST_END();
 }

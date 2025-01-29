@@ -9,6 +9,7 @@ typedef enum {
   TYPE_NONE = 0,
   TYPE_UINT8_T,
   TYPE_UINT16_T,
+  TYPE_BUTTON_E,
 } type_e;
 
 typedef struct {

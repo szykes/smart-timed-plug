@@ -31,6 +31,51 @@ if (TEST)
     -fstack-clash-protection
   )
 
+  add_executable(button-test
+    test/framework.c
+    test/mock.c
+
+    test/avr_mock.c
+
+    test/button_tc.c
+
+    button.c
+  )
+
+  target_link_libraries(button-test PUBLIC common)
+
+  add_custom_command(
+    TARGET button-test
+    POST_BUILD
+    COMMAND button-test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
+  )
+
+  add_executable(time-test
+    test/framework.c
+    test/mock.c
+
+    test/avr_mock.c
+    test/button_mock.c
+
+    #test/clock_common.c
+
+    test/time_tc.c
+
+    time.c
+  )
+
+  target_link_libraries(time-test PUBLIC common)
+
+  add_custom_command(
+    TARGET time-test
+    POST_BUILD
+    COMMAND time-test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
+  )
+
   add_executable(oled-test
     test/framework.c
     test/mock.c

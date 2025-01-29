@@ -146,7 +146,6 @@ bool print_digit(const uint8_t *digit, uint8_t virt_row, uint8_t virt_col, uint8
     return true;
   }
 
-
   return false;
 }
 
