@@ -31,151 +31,73 @@ if (TEST)
     -fstack-clash-protection
   )
 
-  add_executable(clock-test
+  add_executable(oled-test
     test/framework.c
     test/mock.c
 
     test/avr_mock.c
-    test/led_mock.c
-    test/wifi_mock.c
+    test/time_mock.c
 
-    test/clock_common.c
+    #test/clock_common.c
 
-    test/clock_tc.c
+    test/oled_tc.c
 
-    clock.c
+    oled.c
   )
 
-  target_link_libraries(clock-test PUBLIC common)
+  target_link_libraries(oled-test PUBLIC common)
 
   add_custom_command(
-    TARGET clock-test
+    TARGET oled-test
     POST_BUILD
-    COMMAND clock-test
+    COMMAND oled-test
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     VERBATIM
   )
 
-  add_executable(clock-all-secs-test
-    test/framework.c
-    test/mock.c
+  # add_executable(clock-all-secs-test
+  #   test/framework.c
+  #   test/mock.c
 
-    test/avr_mock.c
-    test/led_mock.c
-    test/wifi_mock.c
+  #   test/avr_mock.c
+  #   test/led_mock.c
+  #   test/wifi_mock.c
 
-    test/clock_common.c
-    ${CMAKE_CURRENT_LIST_DIR}/test/clock_gen.c
+  #   test/clock_common.c
+  #   ${CMAKE_CURRENT_LIST_DIR}/test/clock_gen.c
 
-    test/clock_all_secs_tc.c
+  #   test/clock_all_secs_tc.c
 
-    clock.c
-  )
+  #   clock.c
+  # )
 
-  target_link_libraries(clock-all-secs-test PUBLIC common)
+  # target_link_libraries(clock-all-secs-test PUBLIC common)
 
-  add_custom_command(
-    TARGET clock-all-secs-test
-    POST_BUILD
-    COMMAND clock-all-secs-test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    VERBATIM
-  )
+  # add_custom_command(
+  #   TARGET clock-all-secs-test
+  #   POST_BUILD
+  #   COMMAND clock-all-secs-test
+  #   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  #   VERBATIM
+  # )
 
-  add_executable(led-test
-    test/framework.c
-    test/mock.c
+  # add_executable(data-gen
+  #   test/data_generator.c
+  # )
 
-    test/avr_mock.c
-    test/clock_mock.c
+  # target_link_libraries(data-gen PUBLIC
+  #   common
+  #   m
+  # )
 
-    test/led_common.c
-
-    test/led_tc.c
-
-    led.c
-  )
-
-  target_link_libraries(led-test PUBLIC
-    common
-    m
-  )
-
-  add_custom_command(
-    TARGET led-test
-    POST_BUILD
-    COMMAND led-test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    VERBATIM
-  )
-
-  add_executable(led-all-secs-test
-    test/framework.c
-    test/mock.c
-
-    test/avr_mock.c
-    test/clock_mock.c
-
-    test/led_common.c
-    ${CMAKE_CURRENT_LIST_DIR}/test/led_gen.c
-
-    test/led_all_secs_tc.c
-
-    led.c
-  )
-
-  target_link_libraries(led-all-secs-test PUBLIC
-    common
-    m
-  )
-
-  add_custom_command(
-    TARGET led-all-secs-test
-    POST_BUILD
-    COMMAND led-all-secs-test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    VERBATIM
-  )
-
-  add_executable(data-gen
-    test/data_generator.c
-  )
-
-  target_link_libraries(data-gen PUBLIC
-    common
-    m
-  )
-
-  add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/led_gen.c
-    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/clock_gen.c
-    DEPENDS data-gen
-    COMMAND data-gen
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    VERBATIM
-  )
-
-  add_executable(wifi-test
-    test/framework.c
-    test/mock.c
-
-    test/avr_mock.c
-    test/clock_mock.c
-
-    test/wifi_tc.c
-
-    wifi.c
-  )
-
-  target_link_libraries(wifi-test PUBLIC common)
-
-  add_custom_command(
-    TARGET wifi-test
-    POST_BUILD
-    COMMAND wifi-test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    VERBATIM
-  )
+  # add_custom_command(
+  #   OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/led_gen.c
+  #   OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/clock_gen.c
+  #   DEPENDS data-gen
+  #   COMMAND data-gen
+  #   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+  #   VERBATIM
+  # )
 
 else()
   set(F_CPU 8000000UL)

@@ -171,3 +171,11 @@ void time_main(void) {
     do_action_at_tick(pushed_button);
   }
 }
+
+uint16_t time_get_for_display(void) {
+  if (time_cnt_state != TIME_RESET) {
+    return time_cnt;
+  }
+
+  return time_set;
+}

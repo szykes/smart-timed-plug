@@ -7,8 +7,6 @@
 #include "button.h"
 #include "time.h"
 
-#define TIMER_INTERVAL_MS 5
-
 void mcu_sei(void) {
   sei();
 }
@@ -47,7 +45,7 @@ void timer_init(void) {
   TCCR1B |= (1 << WGM12 /* CTC */);
   TCCR1B |= (1 << CS11) | (1 << CS10 /* prescaler is 64 */);
 
-  OCR1A = (F_CPU / (64l * 1000l / TIMER_INTERVAL_MS)) - 1;
+  OCR1A = (F_CPU / (64l * 1000l / TIMER_INTERRUPT_PERIOD_TIME)) - 1;
 
   TIMSK |= (1 << OCIE1A);
 }
