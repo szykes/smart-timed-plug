@@ -7,66 +7,76 @@
 
 #include "framework.h"
 
-mock_call_st mock_calls[NO_MOCK_CALLS];
+mock_call_st *mock_calls_head;
+
+static mock_call_st head = {
+  .next = NULL,
+};
+
+void mock_init(void) {
+  mock_calls_head = &head;
+}
 
 void mock_clear_calls(void) {
-  for (size_t i = 0; i < sizeof(mock_calls)/sizeof(mock_call_st); i++) {
-    for ( size_t j = 0; j < sizeof(mock_calls[i].params)/sizeof(type_st); j++) {
-      if (mock_calls[i].params[j].value != NULL) {
-	free(mock_calls[i].params[j].value);
+  for (mock_call_st *curr = mock_calls_head->next; curr != NULL;) {
+    mock_call_st *next = curr->next;
+
+    for (size_t i = 0; i < sizeof(curr->params)/sizeof(type_st); i++) {
+      if (curr->params[i].value != NULL) {
+	free(curr->params[i].value);
       }
     }
-    if (mock_calls[i].ret.value != NULL) {
-      free(mock_calls[i].ret.value);
+
+    if (curr->ret.value != NULL) {
+      free(curr->ret.value);
     }
+
+    free(curr);
+
+    curr = next;
   }
 
-  memset(&mock_calls, 0, sizeof(mock_calls));
+  mock_calls_head->next = NULL;
 }
 
 void __mock_initiate_expectation(const char *function_name, type_st *params, size_t no_params, type_st *ret, const char *func, unsigned int line, const char *fmt, ...) {
-  size_t i;
-  for (i = 0; i < sizeof(mock_calls)/sizeof(mock_call_st); i++) {
-    if (mock_calls[i].is_expected == false) {
-      mock_calls[i].is_expected = true;
+  mock_call_st *curr;
+  for (curr = mock_calls_head; curr->next != NULL; curr = curr->next) {}
 
-      if (sizeof(mock_calls[i].function_name) < (strlen(function_name) + 1)) {
-	log_error("Function name too long, name: %s, len: %d", function_name, strlen(function_name));
-	break;
-      }
-      strcpy(mock_calls[i].function_name, function_name);
+  curr->next = malloc(sizeof(mock_call_st));
+  curr = curr->next;
+  curr->next = NULL;
 
-      if (sizeof(mock_calls[i].params)/sizeof(type_st) < no_params) {
-	log_error("Not enough space for parameters, function: %s, no_params: %d", function_name, no_params);
-	break;
-      }
-      for (size_t j = 0; j < no_params; j++) {
-	memcpy(&mock_calls[i].params[j], &params[j], sizeof(type_st));
-      }
+  if (sizeof(curr->function_name) < (strlen(function_name) + 1)) {
+    log_error("Function name too long, name: %s, len: %d", function_name, strlen(function_name));
+    return;
+  }
+  strcpy(curr->function_name, function_name);
 
-      if (ret != NULL) {
-	mock_calls[i].ret = *ret;
-      }
-
-      int size = snprintf(mock_calls[i].place, sizeof(mock_calls[i].place), "%s:%d", func, line);
-      if (size >= sizeof(mock_calls[i].place)) {
-	log_error("Place buffer too small, actual: %d, but needed: %d", sizeof(mock_calls[i].place), size);
-      }
-
-      va_list arglist;
-      va_start(arglist, fmt);
-      size = vsnprintf(mock_calls[i].message, sizeof(mock_calls[i].message), fmt, arglist);
-      if (size >= sizeof(mock_calls[i].message)) {
-	log_error("Message buffer too small, actual: %d, but needed: %d", sizeof(mock_calls[i].message), size);
-      }
-      va_end(arglist);
-      break;
-    }
+  if (sizeof(curr->params)/sizeof(type_st) < no_params) {
+    log_error("Not enough space for parameters, function: %s, no_params: %d", function_name, no_params);
+    return;
+  }
+  for (size_t j = 0; j < no_params; j++) {
+    memcpy(&curr->params[j], &params[j], sizeof(type_st));
   }
 
-  if (i >= sizeof(mock_calls)/sizeof(mock_call_st)) {
-    log_error("No space for expecting mock call");
+  if (ret != NULL) {
+    curr->ret = *ret;
   }
+
+  int size = snprintf(curr->place, sizeof(curr->place), "%s:%d", func, line);
+  if (size >= sizeof(curr->place)) {
+    log_error("Place buffer too small, actual: %d, but needed: %d", sizeof(curr->place), size);
+  }
+
+  va_list arglist;
+  va_start(arglist, fmt);
+  size = vsnprintf(curr->message, sizeof(curr->message), fmt, arglist);
+  if (size >= sizeof(curr->message)) {
+    log_error("Message buffer too small, actual: %d, but needed: %d", sizeof(curr->message), size);
+  }
+  va_end(arglist);
 }
 
 static void fill_result(mock_call_st *mock_call, const char *fmt, ...) {
@@ -80,7 +90,7 @@ static void fill_result(mock_call_st *mock_call, const char *fmt, ...) {
   }
 }
 
-static bool check_function_name(mock_call_st *mock_call, size_t idx, const char *function_name) {
+static bool check_function_name(mock_call_st *mock_call, const char *function_name) {
   if (sizeof(mock_call->function_name) < (strlen(function_name) + 1)) {
     fill_result(mock_call, "Function name too long, name: %s, len: %d", function_name, strlen(function_name));
     return false;
@@ -93,7 +103,7 @@ static bool check_function_name(mock_call_st *mock_call, size_t idx, const char 
   return true;
 }
 
-static bool check_param(mock_call_st *mock_call, size_t idx, type_st *expected_param, size_t expected_param_idx, type_st *param) {
+static bool check_param(mock_call_st *mock_call, type_st *expected_param, size_t expected_param_idx, type_st *param) {
   if (expected_param->type == TYPE_NONE) {
     fill_result(mock_call, "No more parameters expected at function: %s, parameter index: %d, param_type: %d", mock_call->function_name, expected_param_idx, param->type);
     return false;
@@ -117,14 +127,14 @@ static bool check_param(mock_call_st *mock_call, size_t idx, type_st *expected_p
   return true;
 }
 
-static bool check_all_params(mock_call_st *mock_call, size_t idx, type_st *params, size_t no_params) {
+static bool check_all_params(mock_call_st *mock_call, type_st *params, size_t no_params) {
   if (sizeof(mock_call->params)/sizeof(type_st) < no_params) {
     fill_result(mock_call, "Not enough space for parameters, function: %s, no_params: %d", mock_call->function_name, no_params);
     return false;
   }
 
   for (size_t i = 0; i < no_params; i++) {
-    if (!check_param(mock_call, idx, &mock_call->params[i], i, &params[i])) {
+    if (!check_param(mock_call, &mock_call->params[i], i, &params[i])) {
       return false;
     }
   }
@@ -132,12 +142,12 @@ static bool check_all_params(mock_call_st *mock_call, size_t idx, type_st *param
   return true;
 }
 
-static void add_record(mock_call_st *mock_call, size_t idx, const char *function_name, type_st *params, size_t no_params, type_st *ret) {
-  if (!check_function_name(mock_call, idx, function_name)) {
+static void add_record(mock_call_st *mock_call, const char *function_name, type_st *params, size_t no_params, type_st *ret) {
+  if (!check_function_name(mock_call, function_name)) {
     return;
   }
 
-  if (!check_all_params(mock_call, idx, params, no_params)) {
+  if (!check_all_params(mock_call, params, no_params)) {
     return;
   }
 
@@ -154,40 +164,30 @@ static void add_record(mock_call_st *mock_call, size_t idx, const char *function
 }
 
 void __mock_record(const char *function_name, type_st *params, size_t no_params, type_st *ret) {
-  size_t i;
-  for (i = 0; i < sizeof(mock_calls)/sizeof(mock_call_st); i++) {
-    if (mock_calls[i].is_called == false) {
-      mock_calls[i].is_called = true;
+  for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
+    if (curr->is_called == false) {
+      curr->is_called = true;
 
-      add_record(&mock_calls[i], i, function_name, params, no_params, ret);
+      add_record(curr, function_name, params, no_params, ret);
 
       break;
     }
   }
-
-  if (i >= sizeof(mock_calls)/sizeof(mock_call_st)) {
-    log_error("No space for recording mock call");
-  }
 }
 
 bool mock_is_succeeded(void) {
-  for (size_t i = 0; i < sizeof(mock_calls)/sizeof(mock_call_st); i++) {
-    if (mock_calls[i].is_expected == false \
-     && mock_calls[i].is_called == true) {
-      log_fail("Mock call(s) not expected at [%d], %s, place: %s, message: %s", i, mock_calls[i].result, mock_calls[i].place, mock_calls[i].message);
+  size_t i = 0;
+  for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
+    if (curr->is_called == false) {
+      log_fail("Mock call(s) missing call at [%d], function is not expected here, function: '%s()', place: %s, message: %s", i, curr->function_name, curr->place, curr->message);
       return false;
     }
-    if (mock_calls[i].is_expected == true \
-     && mock_calls[i].is_called == false) {
-      log_fail("Mock call(s) missing call at [%d], function is not expected here, function: '%s()', place: %s, message: %s", i, mock_calls[i].function_name, mock_calls[i].place, mock_calls[i].message);
+    if (curr->is_called == true \
+     && curr->is_matched == false) {
+      log_fail("Mock call(s) not matched at [%d], %s, place: %s, message: %s", i, curr->result, curr->place, curr->message);
       return false;
     }
-    if (mock_calls[i].is_expected == true \
-     && mock_calls[i].is_called == true \
-     && mock_calls[i].is_matched == false) {
-      log_fail("Mock call(s) not matched at [%d], %s, place: %s, message: %s", i, mock_calls[i].result, mock_calls[i].place, mock_calls[i].message);
-      return false;
-    }
+    i++;
   }
 
   return true;

@@ -18,8 +18,7 @@ typedef struct {
   size_t size;
 } type_st;
 
-typedef struct {
-  bool is_expected;
+typedef struct mock_call_st {
   char function_name[50];
   type_st params[2];
   type_st ret;
@@ -29,16 +28,17 @@ typedef struct {
   bool is_matched;
   char place[50];
   char message[100];
+
+  struct mock_call_st *next;
 } mock_call_st;
 
-#define NO_MOCK_CALLS 3000
-
-extern mock_call_st mock_calls[NO_MOCK_CALLS];
+extern mock_call_st *mock_calls_head;
 
 #define mock_prepare_param(dest, data)		\
   dest = (void*)malloc(sizeof(data));		\
   memcpy(dest, &data, sizeof(data));
 
+void mock_init(void);
 void mock_clear_calls(void);
 
 #define mock_initiate_expectation(function_name, params, no_params, ret) \

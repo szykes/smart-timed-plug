@@ -39,7 +39,9 @@ void own_log(const char *func, unsigned int line, const char *lvl, const char *f
   return false;
 
 
-#define TEST_EVALUATE_INIT() bool is_succeeded = true;
+#define TEST_EVALUATE_INIT()						\
+  bool is_succeeded = true;						\
+  mock_init();
 
 #define TEST_EVALUATE(value)						\
   if (!value) {								\
