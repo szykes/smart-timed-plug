@@ -25,7 +25,7 @@ button_st buttons[BUTTON_MAX];
 volatile uint8_t button_raw;
 volatile bool is_ticking;
 
-void evaluate_button_state(bool raw_state, button_st *button) {
+static void evaluate_button_state(bool raw_state, button_st *button) {
   switch (button->state) {
   case BUTTON_STATE_RELEASED:
     if (raw_state) {

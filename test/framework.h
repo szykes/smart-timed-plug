@@ -2,6 +2,7 @@
 #define TEST_FRAMEWORK_H_
 
 #include <stdbool.h>
+#include "mock.h"
 
 #define log_error(format, ...) own_log(__func__, __LINE__, "ERROR", format, ##__VA_ARGS__)
 #define log_fail(format, ...) own_log(__func__, __LINE__, "FAIL", format, ##__VA_ARGS__)
