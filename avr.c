@@ -51,8 +51,8 @@ void timer_init(void) {
 }
 
 ISR(TIMER1_COMPA_vect) {
-  button_5ms_task();
-  time_5ms_task();
+  button_interrupt();
+  time_interrupt();
 }
 
 void spi_init(void) {

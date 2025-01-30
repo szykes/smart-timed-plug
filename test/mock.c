@@ -41,9 +41,13 @@ void mock_clear_calls(void) {
 
 void __mock_initiate_expectation(const char *function_name, type_st *params, size_t no_params, type_st *ret, const char *func, unsigned int line, const char *fmt, ...) {
   mock_call_st *curr;
-  for (curr = mock_calls_head; curr->next != NULL; curr = curr->next) {}
+  curr = mock_calls_head;
+  for (; curr->next != NULL; ) {
+    curr = curr->next;
+  }
 
   curr->next = malloc(sizeof(mock_call_st));
+  memset(curr->next, 0, sizeof(mock_call_st));
   curr = curr->next;
   curr->next = NULL;
 
@@ -170,9 +174,11 @@ void __mock_record(const char *function_name, type_st *params, size_t no_params,
 
       add_record(curr, function_name, params, no_params, ret);
 
-      break;
+      return;
     }
   }
+
+  log_fail("Mock call was not expected, %s", function_name);
 }
 
 bool mock_is_succeeded(void) {

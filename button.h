@@ -2,16 +2,16 @@
 #define BUTTON_H_
 
 typedef enum {
-  BUTTON_START_STOP = 0,
-  BUTTON_PLUS = 1,
-  BUTTON_MINUS = 2,
-  BUTTON_MAX = 3,
-  BUTTON_RELEASED = BUTTON_MAX,
-} button_e;
+  BUTTON_EVENT_RELEASED = 0,
+  BUTTON_EVENT_START_STOP_SHORT = 1,
+  BUTTON_EVENT_START_STOP_LONG = 2,
+  BUTTON_EVENT_PLUS = 3,
+  BUTTON_EVENT_MINUS = 4,
+} button_event_e;
 
-button_e button_is_pushed(void);
+button_event_e button_is_pushed(void);
 
-void button_5ms_task(void);
+void button_interrupt(void);
 
 void button_main(void);
 

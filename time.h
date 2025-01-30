@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void time_5ms_task(void);
+void time_interrupt(void);
 
 void time_main(void);
 

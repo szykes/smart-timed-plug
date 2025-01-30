@@ -8,10 +8,10 @@
 
 #define MAX_TIME (999u)
 
-#define CNT_LIMIT_100_MS ((100u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
-#define CNT_LIMIT_500_MS ((500u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
+#define CNT_LIMIT_SHORT ((100u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
+#define CNT_LIMIT_LONG ((500u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
 
-#define CNT_SET_SLOW_PERIOD_2_S ((2000u / CNT_LIMIT_500_MS) - 1)
+#define CNT_SET_SLOW_PERIOD ((2000u / CNT_LIMIT_LONG) - 1)
 
 typedef enum {
   TIME_RESET = 0,
@@ -85,7 +85,7 @@ static void handle_button_start_stop(void) {
   case TIME_RESET:
   case TIME_PAUSE:
     time_cnt_state = TIME_START;
-    cnt_limit_for_tick = CNT_LIMIT_100_MS;
+    cnt_limit_for_tick = CNT_LIMIT_SHORT;
     gpio_relay_set();
     decrement_time_cnt();
     break;
@@ -106,10 +106,10 @@ static void handle_button_plus_minus(button_e pushed_button) {
     return;
   }
 
-  if (cnt_for_slow < CNT_SET_SLOW_PERIOD_2_S) {
-    cnt_limit_for_tick = CNT_LIMIT_500_MS;
+  if (cnt_for_slow < CNT_SET_SLOW_PERIOD) {
+    cnt_limit_for_tick = CNT_LIMIT_LONG;
   } else {
-    cnt_limit_for_tick = CNT_LIMIT_100_MS;
+    cnt_limit_for_tick = CNT_LIMIT_SHORT;
   }
 
   if (!is_first_button_plus_minus_pushed) {
@@ -140,7 +140,7 @@ static void handle_button_released(void) {
   is_first_button_plus_minus_pushed = false;
 }
 
-void time_5ms_task(void) {
+void time_interrupt(void) {
   cnt_for_tick++;
 }
 

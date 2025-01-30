@@ -36,7 +36,7 @@ void own_log(const char *func, unsigned int line, const char *lvl, const char *f
     return true;							\
   }									\
   log_fail("Test FAILED!!!!!");                                         \
-  return false;
+  exit(1);
 
 
 #define TEST_EVALUATE_INIT()						\
