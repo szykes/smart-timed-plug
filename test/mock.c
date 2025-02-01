@@ -179,6 +179,7 @@ void __mock_record(const char *function_name, type_st *params, size_t no_params,
   }
 
   log_fail("Mock call was not expected, %s", function_name);
+  exit(1);
 }
 
 bool mock_is_succeeded(void) {
