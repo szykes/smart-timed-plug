@@ -27,6 +27,7 @@ typedef struct mock_call_st {
   bool is_called;
   char result[110];
   bool is_matched;
+  bool is_expected;
   char place[50];
   char message[100];
 

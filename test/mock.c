@@ -39,7 +39,7 @@ void mock_clear_calls(void) {
   mock_calls_head->next = NULL;
 }
 
-void __mock_initiate_expectation(const char *function_name, type_st *params, size_t no_params, type_st *ret, const char *func, unsigned int line, const char *fmt, ...) {
+static mock_call_st * add_new_mock(const char *function_name, type_st *params, size_t no_params, type_st *ret) {
   mock_call_st *curr;
   curr = mock_calls_head;
   for (; curr->next != NULL; ) {
@@ -53,13 +53,13 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
 
   if (sizeof(curr->function_name) < (strlen(function_name) + 1)) {
     log_error("Function name too long, name: %s(), len: %d", function_name, strlen(function_name));
-    return;
+    return NULL;
   }
   strcpy(curr->function_name, function_name);
 
   if (sizeof(curr->params)/sizeof(type_st) < no_params) {
     log_error("Not enough space for parameters, function: %s(), no_params: %d", function_name, no_params);
-    return;
+    return NULL;
   }
   for (size_t j = 0; j < no_params; j++) {
     memcpy(&curr->params[j], &params[j], sizeof(type_st));
@@ -68,6 +68,18 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
   if (ret != NULL) {
     curr->ret = *ret;
   }
+
+  return curr;
+}
+
+void __mock_initiate_expectation(const char *function_name, type_st *params, size_t no_params, type_st *ret, const char *func, unsigned int line, const char *fmt, ...) {
+  mock_call_st *curr = add_new_mock(function_name, params, no_params, ret);
+  if (curr == NULL) {
+    log_fail("NULL ptr");
+    exit(1);
+  }
+
+  curr->is_expected = true;
 
   int size = snprintf(curr->place, sizeof(curr->place), "%s:%d", func, line);
   if (size >= sizeof(curr->place)) {
@@ -172,6 +184,8 @@ static void print_mocks(void) {
   for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
     if (curr->is_called == false) {
       log_fail("Mock call[%d]: expected but not called, func: %s(), place: '%s', message: '%s'", i, curr->function_name, curr->place, curr->message);
+    } else if (!curr->is_expected) {
+      log_fail("Mock call[%d]: not expected but called, func: %s()", i, curr->function_name);
     } else if (curr->is_called == true && curr->is_matched == false) {
       log_fail("Mock call[%d]: not matched, place: '%s', result: '%s', message: '%s'", i, curr->result, curr->place, curr->message);
     } else {
@@ -182,7 +196,8 @@ static void print_mocks(void) {
 }
 
 void __mock_record(const char *function_name, type_st *params, size_t no_params, type_st *ret) {
-  for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
+  mock_call_st *curr;
+  for (curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
     if (curr->is_called == false) {
       curr->is_called = true;
 
@@ -191,14 +206,24 @@ void __mock_record(const char *function_name, type_st *params, size_t no_params,
       return;
     }
   }
+
+  curr = add_new_mock(function_name, params, no_params, ret);
+  if (curr == NULL) {
+    log_fail("NULL ptr");
+    exit(1);
+  }
+
+  curr->is_matched = false;
+  curr->is_called = true;
 }
 
 bool mock_is_succeeded(void) {
   bool is_passed = true;
 
   for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
-    if (curr->is_called == false ||
-	(curr->is_called == true && curr->is_matched == false)) {
+    if (!curr->is_called ||
+	(curr->is_called && !curr->is_matched) ||
+	!curr->is_expected) {
       is_passed = false;
       break;
     }
