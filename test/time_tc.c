@@ -1,19 +1,25 @@
 #include "time.h"
 
-#include <avr.h>
+#include "avr.h"
 #include "button.h"
 
 #include "framework.h"
 
+#include <limits.h>
+#include <stdio.h>
+
+#define START_ADDR_BASE_TIME (0u)
+
 #define MAX_TIME (999u)
 #define MIN_TIME (1u)
-#define DEFAULT_TIME (150u)
+#define DEFAULT_TIME (550u)
 
 #define CNT_LIMIT_SHORT ((100u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
 #define CNT_LIMIT_LONG ((500u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
 #define CNT_LIMIT_VERY_LONG ((1000u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
 
-#define CNT_SET_SLOW_PERIOD ((2000u / CNT_LIMIT_LONG) - 1)
+#define CNT_SET_SLOW_PERIOD (2000u / CNT_LIMIT_LONG)
+#define CNT_SET_STANDBY_PERIOD 10u // (30000u / CNT_LIMIT_VERY_LONG)
 
 typedef enum {
   RELAY_NA = 0,
@@ -66,14 +72,90 @@ static void call_main(button_event_e buttons, relay_state_e relay, main_state_e 
   time_main();
 }
 
-static bool tc_nothing_happens(void) {
+static void mock_eeprom_load(size_t addr, uint8_t data) {
+  void *addr_ptr;
+  mock_prepare_param(addr_ptr, addr);
+
+  void *data_ptr;
+  mock_prepare_param(data_ptr, data);
+
+  type_st params[] = {
+    {
+      .type = TYPE_SIZE_T,
+      .value = addr_ptr,
+      .size = sizeof(addr),
+    },
+  };
+
+  type_st ret = {
+    .type = TYPE_UINT8_T,
+    .value = data_ptr,
+    .size = sizeof(data),
+  };
+
+  mock_initiate_expectation("eeprom_load", params, sizeof(params)/sizeof(type_st), &ret);
+}
+
+static void mock_eeprom_store(size_t addr, uint8_t data) {
+  void *addr_ptr;
+  mock_prepare_param(addr_ptr, addr);
+
+  void *data_ptr;
+  mock_prepare_param(data_ptr, data);
+
+  type_st params[] = {
+    {
+      .type = TYPE_SIZE_T,
+      .value = addr_ptr,
+      .size = sizeof(addr),
+    },
+    {
+      .type = TYPE_UINT8_T,
+      .value = data_ptr,
+      .size = sizeof(data),
+    },
+  };
+  mock_initiate_expectation("eeprom_store", params, sizeof(params)/sizeof(type_st), NULL);
+}
+
+static bool tc_init(void) {
   TEST_BEGIN();
 
-  // TODO: increase
-  for (size_t i = 0; i < 200; i++) {
+  mock_eeprom_load(START_ADDR_BASE_TIME, (DEFAULT_TIME >> CHAR_BIT) & 0xFF);
+  mock_eeprom_load(START_ADDR_BASE_TIME + 1, DEFAULT_TIME & 0xFF);
+
+  time_init();
+
+  TEST_ASSERT_EQ(time_get_for_display(), DEFAULT_TIME, "tc_init()");
+
+  TEST_END();
+}
+
+static bool tc_goes_standby(void) {
+  TEST_BEGIN();
+
+  for (size_t i = 0; i < (CNT_LIMIT_VERY_LONG * CNT_SET_STANDBY_PERIOD); i++) {
+    char str[30];
+    sprintf(str, "i: %lu", (unsigned long)i);
     call_main(BUTTON_EVENT_RELEASED, RELAY_NA, MAIN_NA);
     time_interrupt();
-    TEST_ASSERT_EQ(time_get_for_display(), DEFAULT_TIME, "");
+    TEST_ASSERT_EQ(time_get_for_display(), DEFAULT_TIME, str);
+  }
+
+  for (size_t i = TIME_STANDBY_START; i < TIME_STANDBY_END; i++) {
+    for (size_t j = 0; j < (CNT_LIMIT_VERY_LONG - 1); j++) {
+      time_interrupt();
+      call_main(BUTTON_EVENT_RELEASED, RELAY_NA, MAIN_NA);
+      TEST_ASSERT_EQ(time_get_for_display(), i, "");
+    }
+
+    time_interrupt();
+    call_main(BUTTON_EVENT_RELEASED, RELAY_NA, MAIN_NA);
+    if (i == (TIME_STANDBY_END - 1)) {
+      TEST_ASSERT_EQ(time_get_for_display(), i, "");
+    } else {
+      TEST_ASSERT_EQ(time_get_for_display(), i + 1, "");
+    }
   }
 
   TEST_END();
@@ -427,7 +509,8 @@ bool tc_set_max_and_min_base_time_min_to_default(void) {
 
 int main(void) {
   TEST_EVALUATE_INIT();
-  TEST_EVALUATE(tc_nothing_happens());
+  TEST_EVALUATE(tc_init());
+  TEST_EVALUATE(tc_goes_standby());
   TEST_EVALUATE(tc_simple_countdown());
   TEST_EVALUATE(tc_countdown_with_pause());
   TEST_EVALUATE(tc_countdown_with_reset_in_pause());

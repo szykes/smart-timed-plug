@@ -1,73 +1,71 @@
 #include "avr.h"
 
-#include "framework.h"
 #include "mock.h"
 
 #include <stdio.h>
 
 void mcu_sei(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void mcu_cli(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
+}
+
+uint8_t eeprom_load(size_t addr) {
+  MOCK_RECORD_1_PARAM_RET(TYPE_SIZE_T, addr, TYPE_UINT8_T, uint8_t)
+}
+
+void eeprom_store(size_t addr, uint8_t data) {
+  MOCK_RECORD_2_PARAM(TYPE_SIZE_T, addr, TYPE_UINT8_T, data);
 }
 
 void gpio_init(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 uint8_t gpio_inputs_get(void) {
-  type_st ret;
-
-  mock_record(NULL, 0, &ret);
-
-  if (ret.type == TYPE_UINT8_T) {
-    return *((uint8_t*)ret.value);
-  }
-
-  log_error("Invalid return type");
-  return 0;
+  MOCK_RECORD_RET(TYPE_UINT8_T, uint8_t);
 }
 
 void gpio_relay_set(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_relay_reset(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_oled_reset_set(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_oled_reset_reset(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_oled_dc_set(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_oled_dc_reset(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_oled_cs_set(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void gpio_oled_cs_reset(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void timer_init(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void spi_init(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void spi_send_byte(uint8_t byte) {
@@ -128,9 +126,9 @@ void spi_send_byte(uint8_t byte) {
 }
 
 void wdt_init(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }
 
 void wdt_restart(void) {
-  mock_record(NULL, 0, NULL);
+  MOCK_RECORD();
 }

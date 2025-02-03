@@ -23,21 +23,34 @@ void own_log(const char *func, unsigned int line, const char *lvl, const char *f
     is_succeeded = false;						\
   }
 
+#define TEST_ASSERT_EQ_WITH_MOCK(actual, expected, msg)			\
+  TEST_ASSERT_EQ(actual, expected, msg);				\
+  TEST_CHECK_MOCK();
+
 #define TEST_ASSERT_BOOL(value)						\
   if (!value) {								\
     log_fail("not true");						\
     is_succeeded = false;						\
   }
 
-#define TEST_END()							\
-  bool is_mock_succeeded = mock_is_succeeded();				\
-  if (is_succeeded && is_mock_succeeded) {				\
-    log_test("Test succeeded");						\
-    return true;							\
-  }									\
-  log_fail("Test FAILED!!!!!");                                         \
-  exit(1);
+#define TEST_CHECK_MOCK()						\
+  if (!mock_is_succeeded()) {						\
+    log_fail("Test FAILED!!!!!");					\
+    exit(1);								\
+  } else {								\
+    mock_clear_calls();							\
+  }
 
+#define TEST_END()							\
+  {									\
+    bool is_mock_succeeded = mock_is_succeeded();			\
+    if (is_succeeded && is_mock_succeeded) {				\
+      log_test("Test succeeded");					\
+      return true;							\
+    }									\
+    log_fail("Test FAILED!!!!!");					\
+    exit(1);								\
+  } while(0);
 
 #define TEST_EVALUATE_INIT()						\
   bool is_succeeded = true;						\

@@ -52,13 +52,13 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
   curr->next = NULL;
 
   if (sizeof(curr->function_name) < (strlen(function_name) + 1)) {
-    log_error("Function name too long, name: %s, len: %d", function_name, strlen(function_name));
+    log_error("Function name too long, name: %s(), len: %d", function_name, strlen(function_name));
     return;
   }
   strcpy(curr->function_name, function_name);
 
   if (sizeof(curr->params)/sizeof(type_st) < no_params) {
-    log_error("Not enough space for parameters, function: %s, no_params: %d", function_name, no_params);
+    log_error("Not enough space for parameters, function: %s(), no_params: %d", function_name, no_params);
     return;
   }
   for (size_t j = 0; j < no_params; j++) {
@@ -96,12 +96,12 @@ static void fill_result(mock_call_st *mock_call, const char *fmt, ...) {
 
 static bool check_function_name(mock_call_st *mock_call, const char *function_name) {
   if (sizeof(mock_call->function_name) < (strlen(function_name) + 1)) {
-    fill_result(mock_call, "Function name too long, name: %s, len: %d", function_name, strlen(function_name));
+    fill_result(mock_call, "Function name too long, name: %s(), len: %d", function_name, strlen(function_name));
     return false;
   }
 
   if (strcmp(mock_call->function_name, function_name) != 0) {
-    fill_result(mock_call, "Wrong function is expected here, expected: %s, got: %s", mock_call->function_name, function_name);
+    fill_result(mock_call, "Wrong function is expected here, expected: %s(), got: %s()", mock_call->function_name, function_name);
     return false;
   }
   return true;
@@ -109,22 +109,22 @@ static bool check_function_name(mock_call_st *mock_call, const char *function_na
 
 static bool check_param(mock_call_st *mock_call, type_st *expected_param, size_t expected_param_idx, type_st *param) {
   if (expected_param->type == TYPE_NONE) {
-    fill_result(mock_call, "No more parameters expected at function: %s, parameter index: %d, param_type: %d", mock_call->function_name, expected_param_idx, param->type);
+    fill_result(mock_call, "No more parameters expected at function: %s(), parameter index: %d, param_type: %d", mock_call->function_name, expected_param_idx, param->type);
     return false;
   }
 
   if (expected_param->type != param->type) {
-    fill_result(mock_call, "Wrong parameter type at function: %s, parameter index: %d, expected: %d, got: %d", mock_call->function_name, expected_param_idx, expected_param->type, param->type);
+    fill_result(mock_call, "Wrong parameter type at function: %s(), parameter index: %d, expected: %d, got: %d", mock_call->function_name, expected_param_idx, expected_param->type, param->type);
     return false;
   }
 
   if (expected_param->size != param->size) {
-    fill_result(mock_call, "Wrong parameter size at function: %s, parameter index: %d, expected: %d, got: %d", mock_call->function_name, expected_param_idx, expected_param->size, param->size);
+    fill_result(mock_call, "Wrong parameter size at function: %s(), parameter index: %d, expected: %d, got: %d", mock_call->function_name, expected_param_idx, expected_param->size, param->size);
     return false;
   }
 
   if (memcmp(expected_param->value, param->value, expected_param->size) != 0) {
-    fill_result(mock_call, "Wrong parameter value at function: %s, parameter index: %d", mock_call->function_name, expected_param_idx);
+    fill_result(mock_call, "Wrong parameter value at function: %s(), parameter index: %d", mock_call->function_name, expected_param_idx);
     return false;
   }
 
@@ -133,7 +133,7 @@ static bool check_param(mock_call_st *mock_call, type_st *expected_param, size_t
 
 static bool check_all_params(mock_call_st *mock_call, type_st *params, size_t no_params) {
   if (sizeof(mock_call->params)/sizeof(type_st) < no_params) {
-    fill_result(mock_call, "Not enough space for parameters, function: %s, no_params: %d", mock_call->function_name, no_params);
+    fill_result(mock_call, "Not enough space for parameters, function: %s(), no_params: %d", mock_call->function_name, no_params);
     return false;
   }
 
@@ -157,7 +157,7 @@ static void add_record(mock_call_st *mock_call, const char *function_name, type_
 
   if (ret != NULL) {
     if (mock_call->ret.type == TYPE_NONE) {
-      fill_result(mock_call, "No return value expected at function: %s, return type: %d", mock_call->function_name, ret->type);
+      fill_result(mock_call, "No return value expected at function: %s(), return type: %d", mock_call->function_name, ret->type);
       return;
     }
 
@@ -165,6 +165,20 @@ static void add_record(mock_call_st *mock_call, const char *function_name, type_
   }
 
   mock_call->is_matched = true;
+}
+
+static void print_mocks(void) {
+  size_t i = 0;
+  for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
+    if (curr->is_called == false) {
+      log_fail("Mock call[%d]: expected but not called, func: %s(), place: '%s', message: '%s'", i, curr->function_name, curr->place, curr->message);
+    } else if (curr->is_called == true && curr->is_matched == false) {
+      log_fail("Mock call[%d]: not matched, place: '%s', result: '%s', message: '%s'", i, curr->result, curr->place, curr->message);
+    } else {
+      log_info("Mock call[%d]: ok, func: %s(), message: '%s'", i, curr->function_name, curr->message);
+    }
+    i++;
+  }
 }
 
 void __mock_record(const char *function_name, type_st *params, size_t no_params, type_st *ret) {
@@ -177,25 +191,22 @@ void __mock_record(const char *function_name, type_st *params, size_t no_params,
       return;
     }
   }
-
-  log_fail("Mock call was not expected, %s", function_name);
-  exit(1);
 }
 
 bool mock_is_succeeded(void) {
-  size_t i = 0;
+  bool is_passed = true;
+
   for (mock_call_st *curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
-    if (curr->is_called == false) {
-      log_fail("Mock call(s) missing call at [%d], function is not expected here, function: '%s()', place: %s, message: %s", i, curr->function_name, curr->place, curr->message);
-      return false;
+    if (curr->is_called == false ||
+	(curr->is_called == true && curr->is_matched == false)) {
+      is_passed = false;
+      break;
     }
-    if (curr->is_called == true \
-     && curr->is_matched == false) {
-      log_fail("Mock call(s) not matched at [%d], %s, place: %s, message: %s", i, curr->result, curr->place, curr->message);
-      return false;
-    }
-    i++;
   }
 
-  return true;
+  if (!is_passed) {
+    print_mocks();
+  }
+
+  return is_passed;
 }

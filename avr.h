@@ -2,6 +2,7 @@
 #define AVR_H_
 
 #include <stdint.h>
+#include <string.h>
 
 #define GPIO_BTN_START_STOP (1 << 2)
 #define GPIO_BTN_PLUS (1 << 3)
@@ -11,6 +12,9 @@
 
 void mcu_sei(void);
 void mcu_cli(void);
+
+uint8_t eeprom_load(size_t addr);
+void eeprom_store(size_t addr, uint8_t data);
 
 void gpio_init(void);
 

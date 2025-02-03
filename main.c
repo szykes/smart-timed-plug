@@ -11,6 +11,7 @@ int main()
   gpio_init();
   timer_init();
   spi_init();
+  time_init();
   oled_init();
   wdt_init();
 

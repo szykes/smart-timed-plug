@@ -1,17 +1,7 @@
 #include "button.h"
 
-#include "framework.h"
 #include "mock.h"
 
 button_event_e button_is_pushed(void) {
-  type_st ret;
-
-  mock_record(NULL, 0, &ret);
-
-  if (ret.type == TYPE_BUTTON_E) {
-    return *((button_event_e*)ret.value);
-  }
-
-  log_error("Invalid return type");
-  return 0;
+  MOCK_RECORD_RET(TYPE_BUTTON_EVENT_E, button_event_e);
 }

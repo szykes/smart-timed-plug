@@ -52,23 +52,11 @@ struct multiple_buttons_tc multiple_buttons_tcs[] = {
   },
 };
 
-static void input_mock_init(uint8_t buttons) {
-  void *param_ptr;
-  mock_prepare_param(param_ptr, buttons);
-
-  type_st ret = {
-    .type = TYPE_UINT8_T,
-    .value = param_ptr,
-    .size = sizeof(buttons),
-  };
-  mock_initiate_expectation("gpio_inputs_get", NULL, 0, &ret);
-}
-
-static void call_button_main(int16_t buttons) {
-  mock_initiate_expectation("mcu_cli", NULL, 0, NULL);
-  mock_initiate_expectation("mcu_sei", NULL, 0, NULL);
+static void call_button_main(int8_t buttons) {
+  MOCK_EXPECT("mcu_cli", "");
+  MOCK_EXPECT("mcu_sei", "");
   if (buttons >= 0) {
-    input_mock_init(buttons);
+    MOCK_EXPECT_RET("gpio_inputs_get", TYPE_UINT8_T, buttons, "");
   }
   button_main();
 }
@@ -85,6 +73,8 @@ static bool tc_nothing_happens(void) {
 
     call_button_main(0);
     TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+
+    TEST_CHECK_MOCK();
   }
 
   TEST_END();
@@ -112,6 +102,8 @@ static bool tc_plus_minus_moment_push(void) {
     button_interrupt();
     call_button_main(0);
     TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, t->name);
+
+    TEST_CHECK_MOCK();
   }
 
   TEST_END();
@@ -172,6 +164,8 @@ static bool tc_plus_minus_short_push(void) {
     button_interrupt();
     call_button_main(0);
     TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, t->name);
+
+    TEST_CHECK_MOCK();
   }
 
   TEST_END();
@@ -222,12 +216,14 @@ static bool tc_plus_minus_long_push(void) {
 
       button_interrupt();
       call_button_main(t->input_button);
-      TEST_ASSERT_EQ(button_is_pushed(), t->pushed_button, t->name);
+      TEST_ASSERT_EQ_WITH_MOCK(button_is_pushed(), t->pushed_button, t->name);
     }
 
     button_interrupt();
     call_button_main(0);
     TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, t->name);
+
+    TEST_CHECK_MOCK();
   }
 
   TEST_END();
@@ -239,7 +235,7 @@ static bool tc_start_stop_longest_short_push(void) {
   for (size_t i = 0; i < LONG_CNT; i++) {
     button_interrupt();
     call_button_main(GPIO_BTN_START_STOP);
-    TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+    TEST_ASSERT_EQ_WITH_MOCK(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
   }
 
   button_interrupt();
@@ -259,7 +255,7 @@ static bool tc_start_stop_shortest_long_push(void) {
   for (size_t i = 0; i < LONG_CNT; i++) {
     button_interrupt();
     call_button_main(GPIO_BTN_START_STOP);
-    TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+    TEST_ASSERT_EQ_WITH_MOCK(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
   }
 
   button_interrupt();
@@ -297,6 +293,8 @@ static bool tc_plus_minus_intermittent_push(void) {
       call_button_main(0);
       TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, t->name);
     }
+
+    TEST_CHECK_MOCK();
   }
 
   TEST_END();
@@ -327,6 +325,8 @@ static bool tc_start_stop_intermittent_push(void) {
     button_interrupt();
     call_button_main(0);
     TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+
+    TEST_CHECK_MOCK();
   }
 
   TEST_END();
@@ -343,7 +343,7 @@ static bool tc_multiple_push(void) {
 
       button_interrupt();
       call_button_main(t->buttons);
-      TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, t->name);
+      TEST_ASSERT_EQ_WITH_MOCK(button_is_pushed(), BUTTON_EVENT_RELEASED, t->name);
     }
   }
 

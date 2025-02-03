@@ -15,6 +15,21 @@ void mcu_cli(void) {
   cli();
 }
 
+uint8_t eeprom_load(size_t addr) {
+  while(EECR & (1 << EEWE));
+  EEAR = addr;
+  EECR |= (1 << EERE);
+  return EEDR;
+}
+
+void eeprom_store(size_t addr, uint8_t data) {
+  while(EECR & (1 << EEWE));
+  EEAR = addr;
+  EEDR = data;
+  EECR |= (1 << EEMWE);
+  EECR |= (1 << EEWE);
+}
+
 void gpio_init(void) {}
 
 uint8_t gpio_inputs_get(void) {

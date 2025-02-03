@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+#define TIME_STANDBY_START (10000u)
+#define TIME_STANDBY_END (10003u)
+
+void time_init(void);
+
 void time_interrupt(void);
 
 void time_main(void);
