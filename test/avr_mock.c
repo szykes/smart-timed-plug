@@ -13,7 +13,7 @@ void mcu_cli(void) {
 }
 
 uint8_t eeprom_load(size_t addr) {
-  MOCK_RECORD_1_PARAM_RET(TYPE_SIZE_T, addr, TYPE_UINT8_T, uint8_t)
+  MOCK_RECORD_1_PARAM_RET(TYPE_SIZE_T, addr, TYPE_UINT8_T, uint8_t);
 }
 
 void eeprom_store(size_t addr, uint8_t data) {

@@ -17,7 +17,7 @@
 #define CNT_LIMIT_VERY_LONG ((1000u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
 
 #define CNT_SET_SLOW_PERIOD (2000u / CNT_LIMIT_LONG)
-#define CNT_SET_STANDBY_PERIOD 10u // (30000u / CNT_LIMIT_VERY_LONG)
+#define CNT_SET_STANDBY_PERIOD (30000u / CNT_LIMIT_VERY_LONG)
 
 typedef enum {
   TIME_RESET = 0,
@@ -69,7 +69,6 @@ static void decrement_time_cnt(void) {
   if (time_cnt > 0) {
     time_cnt--;
   }
-  reset_cnt_for_tick();
 }
 
 static void increment_time_set(void) {
@@ -77,7 +76,6 @@ static void increment_time_set(void) {
     base_time++;
     is_changed_base_time = true;
   }
-  reset_cnt_for_tick();
 }
 
 static void decrement_time_set(void) {
@@ -85,7 +83,6 @@ static void decrement_time_set(void) {
     base_time--;
     is_changed_base_time = true;
   }
-  reset_cnt_for_tick();
 }
 
 static void increment_cnt_for_slow(void) {
@@ -122,9 +119,11 @@ static void do_action_at_tick(button_event_e pushed_button) {
 	store_base_time();
 	time_cnt_state = TIME_STANDBY;
 	standby_cnt = TIME_STANDBY_START;
+	cnt_for_standby = 0;
       }
     }
   }
+  reset_cnt_for_tick();
 }
 
 static bool evaluate_cnt_for_tick(void) {
@@ -148,6 +147,7 @@ static void handle_button_start_stop(button_event_e pushed_button) {
   case TIME_PAUSED:
     if (pushed_button == BUTTON_EVENT_START_STOP_LONG) {
       time_cnt_state = TIME_RESET;
+      reset_cnt_for_tick();
       break;
     }
     // wanted fall through
@@ -192,6 +192,7 @@ static void handle_button_plus_minus(button_event_e pushed_button) {
     } else {
       decrement_time_set();
     }
+    reset_cnt_for_tick();
     is_first_button_plus_minus_pushed = true;
   }
 
