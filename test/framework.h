@@ -19,7 +19,7 @@ void own_log(const char *func, unsigned int line, const char *lvl, const char *f
 
 #define TEST_ASSERT_EQ(actual, expected, msg)				\
   if (actual != expected) {						\
-    log_fail("not equal %s: actual: %d, expected: %d", msg, actual, expected); \
+    log_fail("not equal, msg: '%s': actual: %d, expected: %d", msg, actual, expected); \
     is_succeeded = false;						\
   }
 

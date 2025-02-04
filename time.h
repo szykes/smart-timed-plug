@@ -13,5 +13,6 @@ void time_interrupt(void);
 void time_main(void);
 
 uint16_t time_get_for_display(void);
+uint8_t time_get_progress_in_pixels(uint8_t disp_pixels);
 
 #endif /* TIME_H_ */

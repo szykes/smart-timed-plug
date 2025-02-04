@@ -271,3 +271,11 @@ uint16_t time_get_for_display(void) {
 
   return base_time;
 }
+
+uint8_t time_get_progress_in_pixels(uint8_t disp_pixels) {
+  if (time_cnt_state == TIME_STANDBY || time_cnt_state == TIME_RESET) {
+    return 0;
+  }
+
+  return (disp_pixels * (base_time - time_cnt)) / base_time;
+}
