@@ -76,8 +76,8 @@ void spi_init(void) {
 }
 
 void spi_send_byte(uint8_t byte) {
-  while(!(SPSR & (1<<SPIF)));
   SPDR = byte;
+  while(!(SPSR & (1<<SPIF)));
 }
 
 void wdt_init(void) {
