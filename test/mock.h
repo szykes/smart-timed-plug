@@ -146,7 +146,7 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
 
 #define MOCK_RECORD_RET(ret_type, ret_cast)				\
   {									\
-    type_st ret;							\
+    type_st ret = {.type = TYPE_NONE};					\
     __mock_record(__func__, NULL, 0, &ret);				\
     if (ret.type == ret_type) {						\
       return *((ret_cast*)ret.value);					\
@@ -168,7 +168,7 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
 
 #define MOCK_RECORD_1_PARAM_RET(param_1_type, param_1_value, ret_type, ret_cast)	\
   {									\
-    type_st ret;							\
+    type_st ret = {.type = TYPE_NONE};					\
     type_st params[] = {						\
       {									\
          .type = param_1_type,	       					\
@@ -202,7 +202,7 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
 
 #define MOCK_RECORD_2_PARAM_RET(param_1_type, param_1_value, param_2_type, param_2_value, ret_type, ret_cast)) \
   {									\
-    type_st ret;							\
+    type_st ret = {.type = TYPE_NONE};                                  \
     type_st params[] = {						\
       {									\
          .type = param_1_type,	       					\

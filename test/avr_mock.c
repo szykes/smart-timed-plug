@@ -71,62 +71,6 @@ void spi_init(void) {
 void spi_send_byte(uint8_t byte) {
   MOCK_RECORD_1_PARAM(TYPE_UINT8_T, byte);
 }
-/* void spi_send_byte(uint8_t byte) { */
-/*   /\* type_st params[] = { *\/ */
-/*   /\*   { *\/ */
-/*   /\*     .type = TYPE_CHAR, *\/ */
-/*   /\*     .value = &data, *\/ */
-/*   /\*     .size = sizeof(data), *\/ */
-/*   /\*   } *\/ */
-/*   /\* }; *\/ */
-/*   /\* mock_record(params, sizeof(params)/sizeof(type_st), NULL); *\/ */
-
-/* #define OLED_WIDTH (128u) */
-/* #define OLED_HEIGHT (64u) */
-
-/* #define OLED_COLS (OLED_WIDTH) */
-/* #define OLED_ROWS (OLED_HEIGHT / 8u) */
-
-/*   static size_t row; */
-/*   static size_t col; */
-
-/*   static uint8_t buff[OLED_ROWS][OLED_COLS]; */
-
-/*   static bool is_skip = false; */
-
-/*   if (!is_skip && (col % 128) == 0) { */
-/*     is_skip = true; */
-/*     return; */
-/*   } */
-
-/*   if (col >= OLED_COLS) { */
-/*     col = 0; */
-/*     row++; */
-/*   } */
-
-/*   if (row >= (OLED_ROWS - 1) && col >= (OLED_COLS - 1)) { */
-/*     for (uint8_t line = 0; line < 8; line++) { */
-/*       for (row = 0; row < 8; row++) { */
-/* 	for (col = 0; col < OLED_COLS; col++) { */
-/* 	  uint8_t data = buff[line][col]; */
-/* 	  uint8_t bit = data & (1 << row); */
-/* 	  printf("%s", (bit ? "#" : " ")); */
-/* 	} */
-/* 	printf("|\n"); */
-/*       } */
-/*     } */
-/*     row = 0; */
-/*     col = 0; */
-/*     memset(buff, 0, sizeof(buff)); */
-/*     return; */
-/*   } */
-
-/*   buff[row][col] = byte; */
-
-/*   is_skip = false; */
-
-/*   col++; */
-/* } */
 
 void wdt_init(void) {
   MOCK_RECORD();

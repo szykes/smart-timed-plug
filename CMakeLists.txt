@@ -83,7 +83,7 @@ if (TEST)
     test/avr_mock.c
     test/time_mock.c
 
-    #test/clock_common.c
+    test/oled_common.c
 
     test/oled_tc.c
 
@@ -100,49 +100,49 @@ if (TEST)
     VERBATIM
   )
 
-  # add_executable(clock-all-secs-test
-  #   test/framework.c
-  #   test/mock.c
+  add_executable(oled-all-test
+    test/framework.c
+    test/mock.c
 
-  #   test/avr_mock.c
-  #   test/led_mock.c
-  #   test/wifi_mock.c
+    test/avr_mock.c
+    test/time_mock.c
 
-  #   test/clock_common.c
-  #   ${CMAKE_CURRENT_LIST_DIR}/test/clock_gen.c
+    test/oled_common.c
 
-  #   test/clock_all_secs_tc.c
+    ${CMAKE_CURRENT_LIST_DIR}/test/oled_progress_gen.c
+    ${CMAKE_CURRENT_LIST_DIR}/test/oled_time_gen.c
 
-  #   clock.c
-  # )
+    test/oled-all-test_tc.c
 
-  # target_link_libraries(clock-all-secs-test PUBLIC common)
+    oled.c
+  )
 
-  # add_custom_command(
-  #   TARGET clock-all-secs-test
-  #   POST_BUILD
-  #   COMMAND clock-all-secs-test
-  #   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  #   VERBATIM
-  # )
+  target_link_libraries(oled-all-test PUBLIC common)
 
-  # add_executable(data-gen
-  #   test/data_generator.c
-  # )
+  add_custom_command(
+    TARGET oled-all-test
+    POST_BUILD
+    COMMAND oled-all-test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
+  )
 
-  # target_link_libraries(data-gen PUBLIC
-  #   common
-  #   m
-  # )
+  add_executable(data-gen
+    test/data_generator.c
+  )
 
-  # add_custom_command(
-  #   OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/led_gen.c
-  #   OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/clock_gen.c
-  #   DEPENDS data-gen
-  #   COMMAND data-gen
-  #   WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-  #   VERBATIM
-  # )
+  target_link_libraries(data-gen PUBLIC
+    common
+  )
+
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/oled_progress_gen.c
+    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/test/oled_time_gen.c
+    DEPENDS data-gen
+    COMMAND data-gen
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    VERBATIM
+  )
 
 else()
   set(F_CPU 8000000UL)

@@ -6,3 +6,8 @@ cmake
 cmake-test
 
 compile_commands.json
+
+test/oled_progress_gen.h
+test/oled_progress_gen.c
+test/oled_time_gen.h
+test/oled_time_gen.c
