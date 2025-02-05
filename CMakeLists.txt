@@ -87,6 +87,7 @@ if (TEST)
 
     test/oled_tc.c
 
+    oled_bitmap.c
     oled.c
   )
 
@@ -114,6 +115,7 @@ if (TEST)
 
     test/oled-all-test_tc.c
 
+    oled_bitmap.c
     oled.c
   )
 
@@ -128,6 +130,7 @@ if (TEST)
   )
 
   add_executable(data-gen
+    oled_bitmap.c
     test/data_generator.c
   )
 

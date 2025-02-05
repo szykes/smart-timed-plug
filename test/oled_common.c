@@ -1,9 +1,7 @@
+#include "oled_conf.h"
 #include "oled_common.h"
 
 #include "mock.h"
-
-#define OLED_COLS (128u)
-#define OLED_ROWS (8u)
 
 #define CMD_SET_PAGE_ADDR (0xB0u) // + page address
 
