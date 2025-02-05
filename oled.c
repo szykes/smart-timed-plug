@@ -161,7 +161,18 @@ static void print_time(uint16_t time) {
   }
 }
 
+static const uint8_t *get_coffee_ptr(uint8_t idx) {
+#ifdef __AVR__
+  return (const uint8_t *)pgm_read_ptr(&bitmap_coffee[idx]);
+#else
+  return (const uint8_t *)&bitmap_coffee[idx];
+#endif // __AVR__
+}
+
 static void print_coffee(uint16_t time) {
+  uint8_t idx = time - TIME_STANDBY_START;
+  const uint8_t* ptr = get_coffee_ptr(idx);
+
   for (uint16_t i = 0; i < (OLED_COLS * OLED_ROWS); i++) {
     uint8_t virt_row = i / OLED_COLS;
     uint8_t virt_col = i % OLED_COLS;
@@ -170,7 +181,7 @@ static void print_coffee(uint16_t time) {
       write_command(CMD_SET_PAGE_ADDR + virt_row);
     }
 
-    write_data(0x00);
+    write_data(ptr[i]);
   }
 }
 

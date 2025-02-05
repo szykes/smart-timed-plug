@@ -1,6 +1,8 @@
 #include "oled.h"
 
+#include "time.h"
 #include "oled_common.h"
+#include "oled_bitmap.h"
 
 #include "framework.h"
 
@@ -67,7 +69,7 @@ static bool tc_printing_time_twice(void) {
   snprintf(msg, sizeof(msg), "update display");
   MOCK_EXPECT_RET("time_get_for_display", TYPE_UINT16_T, time, msg);
   expect_print_progress(progress, expected_bytes, msg);
-  expect_print_time(time, expected_bytes, msg);
+  expect_print_time(expected_bytes, msg);
 
   oled_main();
 
@@ -79,9 +81,28 @@ static bool tc_printing_time_twice(void) {
   TEST_END();
 }
 
+static bool tc_printing_coffee(void) {
+  TEST_BEGIN();
+  char msg[50];
+
+  for (uint16_t i = TIME_STANDBY_START; i <= TIME_STANDBY_END; i++) {
+    snprintf(msg, sizeof(msg), "time: %u", i);
+    MOCK_EXPECT_RET("time_get_for_display", TYPE_UINT16_T, i, msg);
+
+    expect_print_coffee(&bitmap_coffee[i - TIME_STANDBY_START][0], msg);
+
+    oled_main();
+
+    TEST_CHECK_MOCK();
+  }
+
+  TEST_END();
+}
+
 int main(void) {
   TEST_EVALUATE_INIT();
   TEST_EVALUATE(tc_init());
   TEST_EVALUATE(tc_printing_time_twice());
+  TEST_EVALUATE(tc_printing_coffee());
   TEST_EVALUATE_END();
 }

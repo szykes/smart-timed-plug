@@ -20,7 +20,7 @@ static bool tcs_all_progress(void) {
     MOCK_EXPECT_RET("time_get_for_display", TYPE_UINT16_T, time, msg);
 
     expect_print_progress(tc.progress_in_pixels, tc.disp_data, msg);
-    expect_print_time(tc.progress_in_pixels, tc.disp_data, msg);
+    expect_print_time(tc.disp_data, msg);
 
     oled_main();
 
@@ -40,7 +40,7 @@ static bool tcs_all_time(void) {
     MOCK_EXPECT_RET("time_get_for_display", TYPE_UINT16_T, tc.time, msg);
 
     expect_print_progress(0, tc.disp_data, msg);
-    expect_print_time(tc.time, tc.disp_data, msg);
+    expect_print_time(tc.disp_data, msg);
 
     oled_main();
 

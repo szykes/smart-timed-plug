@@ -26,8 +26,20 @@ void expect_print_progress(uint8_t progress_in_pixels, uint8_t *bytes, char *msg
   }
 }
 
-void expect_print_time(uint8_t time, uint8_t *bytes, char *msg) {
+void expect_print_time(const uint8_t *bytes, char *msg) {
   for (size_t i = OLED_COLS; i < (OLED_COLS * OLED_ROWS); i++) {
+    uint8_t virt_row = i / OLED_COLS;
+    uint8_t virt_col = i % OLED_COLS;
+
+    if (virt_col == 0) {
+      expect_write_command(CMD_SET_PAGE_ADDR + virt_row, msg);
+    }
+    expect_write_data(bytes[i], msg);
+  }
+}
+
+void expect_print_coffee(const uint8_t *bytes, char *msg) {
+  for (size_t i = 0; i < (OLED_COLS * OLED_ROWS); i++) {
     uint8_t virt_row = i / OLED_COLS;
     uint8_t virt_col = i % OLED_COLS;
 
