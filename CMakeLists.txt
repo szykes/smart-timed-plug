@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
-project(smart-timed-plug)
-
 if (TEST)
+  project(smart-timed-plug-test C)
+
   add_library(common INTERFACE)
 
   target_compile_definitions(common INTERFACE
@@ -163,15 +163,19 @@ else()
   set(H_FUSE 0xDF)
 
   set(CMAKE_SYSTEM_NAME Generic)
+  set(CMAKE_SYSTEM_PROCESSOR avr)
   set(CMAKE_CXX_COMPILER avr-g++)
   set(CMAKE_C_COMPILER avr-gcc)
   set(CMAKE_ASM_COMPILER avr-gcc)
+
+  project(smart-timed-plug C)
 
   add_executable(smart-timed-plug
     avr.c
     button.c
     time.c
     oled.c
+    oled_bitmap.c
     main.c
   )
 
