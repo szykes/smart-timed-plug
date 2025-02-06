@@ -52,11 +52,12 @@ struct multiple_buttons_tc multiple_buttons_tcs[] = {
   },
 };
 
-static void call_button_main(int8_t buttons) {
+static void call_button_main(int16_t buttons) {
   MOCK_EXPECT("mcu_cli", "");
   MOCK_EXPECT("mcu_sei", "");
   if (buttons >= 0) {
-    MOCK_EXPECT_RET("gpio_inputs_get", TYPE_UINT8_T, buttons, "");
+    uint8_t btns = buttons;
+    MOCK_EXPECT_RET("gpio_inputs_get", TYPE_UINT8_T, btns, "");
   }
   button_main();
 }
