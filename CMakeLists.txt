@@ -213,13 +213,10 @@ else()
 
   add_custom_target(hex ALL avr-objcopy -R .eeprom -O ihex smart-timed-plug.elf smart-timed-plug.hex DEPENDS smart-timed-plug)
 
-  add_custom_target(eeprom avr-objcopy -j .eeprom  --set-section-flags=.eeprom="alloc,load"  --change-section-lma .eeprom=0 -O ihex ${PRODUCT_NAME}.elf ${PRODUCT_NAME}.eep DEPENDS strip)
-
   add_custom_target(upload avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U flash:w:smart-timed-plug.hex DEPENDS hex)
 
-  add_custom_target(upload_eeprom avrdude -c ${PROG_TYPE} -p ${MCU}  -U eeprom:w:${PRODUCT_NAME}.eep DEPENDS eeprom)
+  add_custom_target(upload-eeprom avrdude -c ${PROG_TYPE} -p ${MCU}  -U eeprom:w:eeprom.hex:i)
+  add_custom_target(download-eeprom avrdude -c ${PROG_TYPE} -p ${MCU}  -U eeprom:r:readback.hex:i)
 
   add_custom_target(fuses avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U lfuse:w:${L_FUSE}:m -U hfuse:w:${H_FUSE}:m)
-
-  set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PRODUCT_NAME}.hex;${PRODUCT_NAME}.eeprom;${PRODUCT_NAME}.lst")
 endif()
