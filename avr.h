@@ -4,9 +4,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#define GPIO_BTN_START_STOP (1 << 5)
-#define GPIO_BTN_PLUS (1 << 6)
-#define GPIO_BTN_MINUS (1 << 7)
+#define GPIO_BTN_START_STOP (1 << 0)
+#define GPIO_BTN_PLUS (1 << 1)
+#define GPIO_BTN_MINUS (1 << 2)
 
 #define TIMER_INTERRUPT_PERIOD_TIME (5u) // 5 ms
 

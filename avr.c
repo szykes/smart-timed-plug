@@ -9,9 +9,9 @@
 
 void hw_init(void) {
   // GPIO
-  DDRD = (1 << DD0) | (1 << DD1) | (1 << DD2) | (1 << DD3);
-  PORTD = (1 << PORT5) | (1 << PORT6) | (1 << PORT7);
-  DDRB = (1 << DD3 /* MOSI */) | (1 << DD5 /* SCK */);
+  DDRA = (1 << DD3) | (1 << DD4 /* SCK */) | (1 << DD5 /* DO */) | (1 << DD7);
+  PORTA = (1 << PORT0) | (1 << PORT1) | (2 << PORT2);
+  DDRB = (1 << DD0) | (1 << DD1);
 
   // Timer 1
   // Calculate the OCR1A value for the desired interval
@@ -22,10 +22,12 @@ void hw_init(void) {
 
   OCR1A = (F_CPU / (64l * 1000l / TIMER_INTERRUPT_PERIOD_TIME)) - 1;
 
-  TIMSK = (1 << OCIE1A);
+  TIMSK1 = (1 << OCIE1A);
 
   // SPI
-  SPCR = (1 << SPE) | (1 << MSTR) | (1 << CPHA) | (1 << CPOL);
+  USICR = (1 << USIWM0) | (0 << USIWM1) |  // Three-Wire Mode (SPI)
+        (1 << USICS1) |                  // External Clock (USCK)
+        (1 << USICLK);                   // Software Clock Strobe (Required for Master mode)
 
   // Watchdog
   wdt_enable(WDTO_250MS);
@@ -40,22 +42,23 @@ void mcu_cli(void) {
 }
 
 uint8_t eeprom_load(size_t addr) {
-  while(EECR & (1 << EEWE));
+  while(EECR & (1<<EEPE));
   EEAR = addr;
-  EECR |= (1 << EERE);
+  EECR |= (1<<EERE);
   return EEDR;
 }
 
 void eeprom_store(size_t addr, uint8_t data) {
-  while(EECR & (1 << EEWE));
+  while(EECR & (1<<EEPE));
+  EECR = (0<<EEPM1) | (0<<EEPM0);
   EEAR = addr;
   EEDR = data;
-  EECR |= (1 << EEMWE);
-  EECR |= (1 << EEWE);
+  EECR |= (1<<EEMPE);
+  EECR |= (1<<EEPE);
 }
 
 uint8_t gpio_inputs_get(void) {
-  return PINB & ((1 << PIN5) | (1 << PIN6) | (PIN7));
+  return PINA & ((1 << PIN0) | (1 << PIN1) | (PIN2));
 }
 
 void gpio_relay_set(void) {
@@ -67,37 +70,40 @@ void gpio_relay_reset(void) {
 }
 
 void gpio_oled_reset_set(void) {
-  PORTB |= (1 << PORT1);
+  PORTA |= (1 << PORT3);
 }
 
 void gpio_oled_reset_reset(void) {
-  PORTB &= ~(1 << PORT1);
+  PORTA &= ~(1 << PORT3);
 }
 
 void gpio_oled_dc_set(void) {
-  PORTB |= (1 << PORT2);
+  PORTA |= (1 << PORT7);
 }
 
 void gpio_oled_dc_reset(void) {
-  PORTB &= ~(1 << PORT2);
+  PORTA |= ~(1 << PORT7);
 }
 
 void gpio_oled_cs_set(void) {
-  PORTB |= (1 << PORT3);
+  PORTB |= (1 << PORT1);
 }
 
 void gpio_oled_cs_reset(void) {
-  PORTB &= ~(1 << PORT3);
+  PORTB &= ~(1 << PORT1);
 }
 
-ISR(TIMER1_COMPA_vect) {
+ISR(TIM1_COMPA_vect) {
   button_interrupt();
   time_interrupt();
 }
 
 void spi_send_byte(uint8_t byte) {
-  SPDR = byte;
-  while(!(SPSR & (1<<SPIF)));
+  USIDR = byte;
+  USISR = (1 << USIOIF);
+  while ((USISR & (1 << USIOIF)) == 0) {
+    USICR |= (1 << USITC);
+  }
 }
 
 void wdt_restart(void) {
