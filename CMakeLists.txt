@@ -186,7 +186,7 @@ else()
   target_compile_options(smart-timed-plug PUBLIC
     -mmcu=${MCU_GCC}
     -std=c99
-    -O1
+    -Os
     -Wall
     -Wundef
     -pedantic
