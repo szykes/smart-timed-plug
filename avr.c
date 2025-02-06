@@ -58,7 +58,8 @@ void eeprom_store(size_t addr, uint8_t data) {
 }
 
 uint8_t gpio_inputs_get(void) {
-  return PINA & ((1 << PIN0) | (1 << PIN1) | (PIN2));
+  uint8_t input = PINA & ((1 << PIN0) | (1 << PIN1) | (PIN2));
+  return ~input;
 }
 
 void gpio_relay_set(void) {
