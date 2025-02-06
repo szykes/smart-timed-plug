@@ -8,12 +8,9 @@
 int main()
 {
   mcu_sei();
-  gpio_init();
-  timer_init();
-  spi_init();
+  hw_init();
   time_init();
   oled_init();
-  wdt_init();
 
   while(1) {
     button_main();
