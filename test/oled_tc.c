@@ -47,7 +47,7 @@ static bool tc_init(void) {
   };
 
   MOCK_EXPECT("gpio_oled_reset_reset", "");
-  MOCK_EXPECT("gpio_relay_set", "");
+  MOCK_EXPECT("gpio_oled_reset_set", "");
 
   for (uint8_t i = 0; i < sizeof(init_seq)/sizeof(init_seq[0]); i++) {
     expect_write_command(init_seq[i], "");

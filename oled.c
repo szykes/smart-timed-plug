@@ -79,11 +79,7 @@ static uint8_t calculate_digit(uint16_t time, uint8_t pos) {
 }
 
 static const uint8_t *get_digit_ptr(uint8_t digit) {
-#ifdef __AVR__
-  return (const uint8_t *)pgm_read_ptr(&bitmap_digits[digit]);
-#else
   return (const uint8_t *)&bitmap_digits[digit];
-#endif // __AVR__
 }
 
 static bool print_digit(const uint8_t *digit, uint8_t virt_row, uint8_t virt_col,
@@ -161,17 +157,9 @@ static void print_time(uint16_t time) {
   }
 }
 
-static const uint8_t *get_coffee_ptr(uint8_t idx) {
-#ifdef __AVR__
-  return (const uint8_t *)pgm_read_ptr(&bitmap_coffee[idx]);
-#else
-  return (const uint8_t *)&bitmap_coffee[idx];
-#endif // __AVR__
-}
-
 static void print_coffee(uint16_t time) {
   uint8_t idx = time - TIME_STANDBY_START;
-  const uint8_t* ptr = get_coffee_ptr(idx);
+  const uint8_t* ptr = (const uint8_t *)&bitmap_coffee[idx];
 
   for (uint16_t i = 0; i < (OLED_COLS * OLED_ROWS); i++) {
     uint8_t virt_row = i / OLED_COLS;
@@ -181,7 +169,11 @@ static void print_coffee(uint16_t time) {
       write_command(CMD_SET_PAGE_ADDR + virt_row);
     }
 
+#ifdef __AVR__
+    write_data(pgm_read_byte(&ptr[i]));
+#else
     write_data(ptr[i]);
+#endif // __AVR__
   }
 }
 
@@ -190,7 +182,7 @@ void oled_init(void) {
 #ifdef __AVR__
   _delay_us(5);
 #endif // __AVR__
-  gpio_relay_set();
+  gpio_oled_reset_set();
 #ifdef __AVR__
   _delay_us(5);
 #endif // __AVR__

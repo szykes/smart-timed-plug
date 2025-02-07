@@ -58,8 +58,7 @@ void eeprom_store(size_t addr, uint8_t data) {
 }
 
 uint8_t gpio_inputs_get(void) {
-  uint8_t input = PINA & ((1 << PIN0) | (1 << PIN1) | (PIN2));
-  return ~input;
+  return (~PINA) & ((1 << PIN0) | (1 << PIN1) | (PIN2));
 }
 
 void gpio_relay_set(void) {
@@ -83,7 +82,7 @@ void gpio_oled_dc_set(void) {
 }
 
 void gpio_oled_dc_reset(void) {
-  PORTA |= ~(1 << PORT7);
+  PORTA &= ~(1 << PORT7);
 }
 
 void gpio_oled_cs_set(void) {
