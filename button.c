@@ -16,6 +16,7 @@ typedef enum {
   BUTTON_STATE_LONG_PUSHED = 2,
   BUTTON_STATE_DEBOUNCING = 3,
   BUTTON_STATE_WAITING = 4,
+  BUTTON_STATE_AFTER_LONG_PUSHED = 5,
 } button_state_e;
 
 typedef struct {
@@ -69,8 +70,17 @@ static void evaluate_button_defer(bool raw_state) {
     }
     break;
 
-  case BUTTON_STATE_SHORT_PUSHED:
   case BUTTON_STATE_LONG_PUSHED:
+    button_start_stop.state = BUTTON_STATE_AFTER_LONG_PUSHED;
+    break;
+
+  case BUTTON_STATE_AFTER_LONG_PUSHED:
+    if (!raw_state) {
+      button_start_stop.state = BUTTON_STATE_RELEASED;
+    }
+    break;
+
+  case BUTTON_STATE_SHORT_PUSHED:
     button_start_stop.state = BUTTON_STATE_RELEASED;
     break;
 

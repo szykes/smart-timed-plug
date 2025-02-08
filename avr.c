@@ -10,7 +10,7 @@
 void hw_init(void) {
   // GPIO
   DDRA = (1 << DD3) | (1 << DD4 /* SCK */) | (1 << DD5 /* DO */) | (1 << DD7);
-  PORTA = (1 << PORT0) | (1 << PORT1) | (2 << PORT2);
+  PORTA = (1 << PORT0) | (1 << PORT1) | (1 << PORT2);
   DDRB = (1 << DD0) | (1 << DD1);
 
   // Timer 1
@@ -20,7 +20,7 @@ void hw_init(void) {
 
   TCCR1B = (1 << WGM12 /* CTC */) | (1 << CS11) | (1 << CS10 /* prescaler is 64 */);
 
-  OCR1A = (F_CPU / (64l * 1000l / TIMER_INTERRUPT_PERIOD_TIME)) - 1;
+  OCR1A = (F_CPU / (64ul * 1000ul / TIMER_INTERRUPT_PERIOD_TIME)) - 1u;
 
   TIMSK1 = (1 << OCIE1A);
 
@@ -58,7 +58,7 @@ void eeprom_store(size_t addr, uint8_t data) {
 }
 
 uint8_t gpio_inputs_get(void) {
-  return (~PINA) & ((1 << PIN0) | (1 << PIN1) | (PIN2));
+  return (~PINA) & ((1 << PIN0) | (1 << PIN1) | (1 << PIN2));
 }
 
 void gpio_relay_set(void) {

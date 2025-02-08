@@ -93,8 +93,9 @@ static void fill_bytes(uint8_t *bytes, uint16_t time, uint8_t progress) {
     uint8_t virt_row = i / OLED_COLS;
     uint8_t virt_col = i % OLED_COLS;
 
-    if (!print_digit(&bytes[i], first_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
-		     ALL_DIGITS_OFFSET_COLS) &&
+    if ((first_digit == 0 ||
+	 !print_digit(&bytes[i], first_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
+		      ALL_DIGITS_OFFSET_COLS)) &&
 	!print_digit(&bytes[i], second_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
 		     ALL_DIGITS_OFFSET_COLS + OLED_DIGIT_COLS + SPACE_BETWEEN_DIGITS) &&
 	!print_point(&bytes[i], virt_row, virt_col, POINT_OFFSET_ROWS,

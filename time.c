@@ -12,12 +12,25 @@
 #define MAX_TIME (999u)
 #define MIN_TIME (1u)
 
-#define CNT_LIMIT_SHORT ((100u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
-#define CNT_LIMIT_LONG ((500u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
-#define CNT_LIMIT_VERY_LONG ((1000u / TIMER_INTERRUPT_PERIOD_TIME) - 1)
+#define SEC (1000u)
 
-#define CNT_SET_SLOW_PERIOD (2000u / CNT_LIMIT_LONG)
-#define CNT_SET_STANDBY_PERIOD (30000u / CNT_LIMIT_VERY_LONG)
+#define LIMIT_COUNTDOWN (100u)
+#define LIMIT_CHANGING_TIME_SLOW (400u)
+#define LIMIT_CHANGING_TIME_FAST (100u)
+#define LIMIT_PLAYING_STNDBY_PICTURES (400u)
+#define LIMIT_WAITING_AT_END (1u * SEC)
+#define LIMIT_WAITING_STANDBY (1u * SEC)
+
+#define CNT_LIMIT_COUNTDOWN ((LIMIT_COUNTDOWN / TIMER_INTERRUPT_PERIOD_TIME) - 1u)
+#define CNT_LIMIT_CHANGING_TIME_SLOW ((LIMIT_CHANGING_TIME_SLOW / TIMER_INTERRUPT_PERIOD_TIME) - 1u)
+#define CNT_LIMIT_CHANGING_TIME_FAST ((LIMIT_CHANGING_TIME_FAST / TIMER_INTERRUPT_PERIOD_TIME) - 1u)
+#define CNT_LIMIT_PLAYING_STNDBY_PICTURES ((LIMIT_PLAYING_STNDBY_PICTURES / TIMER_INTERRUPT_PERIOD_TIME) - 1u)
+#define CNT_LIMIT_WAITING_AT_END ((LIMIT_WAITING_AT_END / TIMER_INTERRUPT_PERIOD_TIME) - 1u)
+#define CNT_LIMIT_WAITING_STANDBY ((LIMIT_WAITING_STANDBY / TIMER_INTERRUPT_PERIOD_TIME) - 1u)
+
+#define CNT_FOR_RESET ((2 * SEC) / LIMIT_WAITING_AT_END)
+#define CNT_FOR_CHANGING_TIME_SLOW_PERIOD ((2 * SEC) / LIMIT_CHANGING_TIME_SLOW)
+#define CNT_FOR_STANDBY ((120 * SEC) / LIMIT_WAITING_STANDBY)
 
 typedef enum {
   TIME_RESET = 0,
@@ -31,7 +44,8 @@ typedef enum {
 
 // The time_set contains the time period for how long the relay turns on
 // in tenth of a second. So, 150 means 15,0 seconds.
-static uint16_t base_time;
+// TODO: make it EEPROM compatible
+static uint16_t base_time = 150u;
 static bool is_changed_base_time;
 static uint16_t time_cnt;
 static time_state_e time_cnt_state;
@@ -40,15 +54,19 @@ static time_state_e time_cnt_state;
 volatile static uint8_t cnt_for_tick;
 static uint8_t cnt_limit_for_tick;
 
-static uint8_t cnt_for_slow;
+static uint8_t cnt_for_reset;
+static uint8_t cnt_for_changing_time_slow;
 static uint8_t cnt_for_standby;
-static uint16_t standby_cnt = TIME_STANDBY_START;
+static uint16_t cnt_playing_pics_standby = TIME_STANDBY_START;
 
 static bool is_first_button_plus_minus_pushed;
 
 static void load_base_time(void) {
-  base_time = eeprom_load(START_ADDR_BASE_TIME) << CHAR_BIT;
-  base_time |= eeprom_load(START_ADDR_BASE_TIME + 1);
+  uint16_t temp;
+  temp = eeprom_load(START_ADDR_BASE_TIME) << CHAR_BIT;
+  temp |= eeprom_load(START_ADDR_BASE_TIME + 1);
+
+  base_time = (temp > MAX_TIME ? base_time : temp);
 }
 
 static void store_base_time(void) {
@@ -71,23 +89,33 @@ static void decrement_time_cnt(void) {
   }
 }
 
-static void increment_time_set(void) {
-  if (base_time < MAX_TIME) {
-    base_time++;
-    is_changed_base_time = true;
+static void increment_time(void) {
+  if (time_cnt_state != TIME_PAUSED) {
+    if (base_time < MAX_TIME) {
+      base_time++;
+      is_changed_base_time = true;
+    }
+  } else {
+    if (time_cnt < base_time) {
+      time_cnt++;
+    }
   }
 }
 
-static void decrement_time_set(void) {
-  if (base_time > MIN_TIME) {
-    base_time--;
+static void decrement_time(void) {
+  uint16_t* ptr = &time_cnt;
+  if (time_cnt_state != TIME_PAUSED) {
+    ptr = &base_time;
     is_changed_base_time = true;
+  }
+  if ((*ptr) > MIN_TIME) {
+    (*ptr)--;
   }
 }
 
 static void increment_cnt_for_slow(void) {
-  if (cnt_for_slow < CNT_SET_SLOW_PERIOD) {
-    cnt_for_slow++;
+  if (cnt_for_changing_time_slow < CNT_FOR_CHANGING_TIME_SLOW_PERIOD) {
+    cnt_for_changing_time_slow++;
   }
 }
 
@@ -95,31 +123,37 @@ static void do_action_at_tick(button_event_e pushed_button) {
   if (time_cnt_state == TIME_DECREASING) {
     decrement_time_cnt();
   } else if (time_cnt_state == TIME_END) {
-    time_cnt_state = TIME_RESET;
+    if (cnt_for_reset < (CNT_FOR_RESET - 1)) {
+      cnt_for_reset++;
+    } else {
+      cnt_for_reset = 0;
+      time_cnt_state = TIME_RESET;
+    }
   } else if (pushed_button == BUTTON_EVENT_PLUS) {
-    increment_time_set();
+    increment_time();
     increment_cnt_for_slow();
   } else if (pushed_button == BUTTON_EVENT_MINUS) {
-    decrement_time_set();
+    decrement_time();
     increment_cnt_for_slow();
   } else {
     if (time_cnt_state == TIME_STANDBY) {
-      if (standby_cnt < TIME_STANDBY_END) {
-	standby_cnt++;
+      if (cnt_playing_pics_standby < TIME_STANDBY_END) {
+	cnt_playing_pics_standby++;
       } else {
-	standby_cnt = TIME_STANDBY_START;
+	cnt_playing_pics_standby = TIME_STANDBY_START;
       }
     }
 
     if (time_cnt_state == TIME_PAUSED ||
 	time_cnt_state == TIME_RESET) {
-      if (cnt_for_standby < CNT_SET_STANDBY_PERIOD) {
+      if (cnt_for_standby < (CNT_FOR_STANDBY - 1)) {
 	cnt_for_standby++;
       } else {
+	time_cnt = base_time;
 	store_base_time();
 	time_cnt_state = TIME_STANDBY;
-	standby_cnt = TIME_STANDBY_START;
-	cnt_for_standby = 0;
+	cnt_playing_pics_standby = TIME_STANDBY_START;
+	cnt_limit_for_tick = CNT_LIMIT_PLAYING_STNDBY_PICTURES;
       }
     }
   }
@@ -154,7 +188,7 @@ static void handle_button_start_stop(button_event_e pushed_button) {
   case TIME_STANDBY:
   case TIME_RESET:
     time_cnt_state = TIME_START;
-    cnt_limit_for_tick = CNT_LIMIT_SHORT;
+    cnt_limit_for_tick = CNT_LIMIT_COUNTDOWN;
     reset_cnt_for_tick();
     gpio_relay_set();
     decrement_time_cnt();
@@ -180,17 +214,21 @@ static void handle_button_plus_minus(button_event_e pushed_button) {
     return;
   }
 
-  if (cnt_for_slow < CNT_SET_SLOW_PERIOD) {
-    cnt_limit_for_tick = CNT_LIMIT_LONG;
+  if (time_cnt_state == TIME_STANDBY) {
+    time_cnt_state = TIME_RESET;
+  }
+
+  if (cnt_for_changing_time_slow < CNT_FOR_CHANGING_TIME_SLOW_PERIOD) {
+    cnt_limit_for_tick = CNT_LIMIT_CHANGING_TIME_SLOW;
   } else {
-    cnt_limit_for_tick = CNT_LIMIT_SHORT;
+    cnt_limit_for_tick = CNT_LIMIT_CHANGING_TIME_FAST;
   }
 
   if (!is_first_button_plus_minus_pushed) {
     if (pushed_button == BUTTON_EVENT_PLUS) {
-      increment_time_set();
+      increment_time();
     } else {
-      decrement_time_set();
+      decrement_time();
     }
     reset_cnt_for_tick();
     is_first_button_plus_minus_pushed = true;
@@ -203,8 +241,9 @@ static void handle_button_released(void) {
   switch (time_cnt_state) {
   case TIME_RESET:
     time_cnt = base_time;
+    // wanted fall through
   case TIME_PAUSED:
-    cnt_limit_for_tick = CNT_LIMIT_VERY_LONG;
+    cnt_limit_for_tick = CNT_LIMIT_WAITING_STANDBY;
     break;
 
   case TIME_PAUSING:
@@ -219,7 +258,7 @@ static void handle_button_released(void) {
     break;
   }
 
-  cnt_for_slow = 0;
+  cnt_for_changing_time_slow = 0;
   is_first_button_plus_minus_pushed = false;
 }
 
@@ -251,7 +290,7 @@ void time_main(void) {
 
   if (time_cnt == 0 && time_cnt_state != TIME_END) {
     time_cnt_state = TIME_END;
-    cnt_limit_for_tick = CNT_LIMIT_VERY_LONG;
+    cnt_limit_for_tick = CNT_LIMIT_WAITING_AT_END;
     gpio_relay_reset();
   }
 
@@ -262,7 +301,7 @@ void time_main(void) {
 
 uint16_t time_get_for_display(void) {
   if (time_cnt_state == TIME_STANDBY) {
-    return standby_cnt;
+    return cnt_playing_pics_standby;
   }
 
   if (time_cnt_state != TIME_RESET) {
@@ -277,5 +316,5 @@ uint8_t time_get_progress_in_pixels(uint8_t disp_pixels) {
     return 0;
   }
 
-  return (disp_pixels * (base_time - time_cnt)) / base_time;
+  return (disp_pixels * (uint32_t)(base_time - time_cnt)) / base_time;
 }

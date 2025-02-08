@@ -82,7 +82,7 @@ static const uint8_t *get_digit_ptr(uint8_t digit) {
   return (const uint8_t *)&bitmap_digits[digit];
 }
 
-static bool print_digit(const uint8_t *digit, uint8_t virt_row, uint8_t virt_col,
+static bool is_print_digit(const uint8_t *digit, uint8_t virt_row, uint8_t virt_col,
 			uint8_t offset_rows, uint8_t offset_cols) {
   if (offset_cols <= virt_col && virt_col < (OLED_DIGIT_COLS + offset_cols) &&
       offset_rows <= virt_row && virt_row < (OLED_DIGIT_ROWS + offset_rows)) {
@@ -99,7 +99,7 @@ static bool print_digit(const uint8_t *digit, uint8_t virt_row, uint8_t virt_col
   return false;
 }
 
-static bool print_point(uint8_t virt_row, uint8_t virt_col,
+static bool is_print_point(uint8_t virt_row, uint8_t virt_col,
                         uint8_t offset_rows, uint8_t offset_cols) {
   if (offset_cols <= virt_col && virt_col < (OLED_POINT_COLS + offset_cols) &&
       offset_rows <= virt_row && virt_row < (OLED_POINT_ROWS + offset_rows)) {
@@ -144,13 +144,14 @@ static void print_time(uint16_t time) {
       write_command(CMD_SET_PAGE_ADDR + virt_row);
     }
 
-    if (!print_digit(first_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
-		     ALL_DIGITS_OFFSET_COLS) &&
-	!print_digit(second_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
+    if ((first_digit == 0 ||
+	 !is_print_digit(first_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
+			 ALL_DIGITS_OFFSET_COLS)) &&
+	!is_print_digit(second_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
 		     ALL_DIGITS_OFFSET_COLS + OLED_DIGIT_COLS + SPACE_BETWEEN_DIGITS) &&
-	!print_point(virt_row, virt_col, POINT_OFFSET_ROWS,
+	!is_print_point(virt_row, virt_col, POINT_OFFSET_ROWS,
 		     ALL_DIGITS_OFFSET_COLS + 2 * (OLED_DIGIT_COLS + SPACE_BETWEEN_DIGITS)) &&
-	!print_digit(third_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
+	!is_print_digit(third_digit_ptr, virt_row, virt_col, ALL_DIGITS_OFFSET_ROWS,
 		     ALL_DIGITS_OFFSET_COLS + (2 * OLED_DIGIT_COLS) + OLED_POINT_COLS + (3 * SPACE_BETWEEN_DIGITS))) {
       write_data(0x00);
     }
@@ -193,6 +194,7 @@ void oled_init(void) {
     CMD_SET_DISPLAY_START_LINE_0,
     CMD_SET_NORMAL_DISPLAY,
     CMD_SET_V_COMH_DESELECT_LEVEL, CMD_VAL_0_83_X_VCC,
+    CMD_SET_CONTRAST, 0x00,
     CMD_ENTIRE_DISPLAY_ON_WITH_RAM,
     CMD_SET_SEGMNET_REMAP_NON_MIRRORED,
     CMD_SET_COM_OUTPUT_SCAN_DIRECTION_NON_MIRRORED,
@@ -203,40 +205,6 @@ void oled_init(void) {
   for (uint8_t i = 0; i < sizeof(init_seq); i++) {
     write_command(init_seq[i]);
   }
-/*   write_command(CMD_SET_DISPLAY_OFF); */
-
-/* /\*   Write_command(0xA8); // Select Multiplex Ratio *\/ */
-/* /\* Write_command(0x3F); // Default => 0x3F (1/64 Duty) 0x1F(1/32 Duty) *\/ */
-
-/* /\*   Write_command(0xD3); //Setting Display Offset *\/ */
-/* /\* Write_command(0x00); //00H Reset *\/ */
-
-/*   write_command(CMD_SET_MEMORY_ADDRESSING_MODE); */
-/*   write_command(CMD_VAL_PAGE_ADDRESSING_MODE); */
-
-/* /\*   Write_command(0x00); //Set Column Address LSB *\/ */
-/* /\* Write_command(0x10); //Set Column Address MSB *\/ */
-
-/*   write_command(CMD_SET_DISPLAY_START_LINE_0); */
-
-/*   write_command(CMD_SET_NORMAL_DISPLAY); */
-
-/*   write_command(CMD_SET_V_COMH_DESELECT_LEVEL); */
-/*   write_command(CMD_VAL_0_83_X_VCC); */
-
-/*   write_command(CMD_ENTIRE_DISPLAY_ON_WITH_RAM); */
-
-/*   write_command(CMD_SET_SEGMNET_REMAP_NON_MIRRORED); */
-
-/*   write_command(CMD_SET_COM_OUTPUT_SCAN_DIRECTION_NON_MIRRORED); */
-
-/*   write_command(CMD_SET_COM_PIN_HW_CONFIG); */
-/*   write_command(CMD_VAL_ALTERNATIVE_COM_PIN); */
-
-/* /\* Write_command(0xD9); //Set Pre-Charge period *\/ */
-/* /\* Write_command(0x22);   *\/ */
-
-/*   write_command(CMD_SET_DISPLAY_ON); */
 }
 
 void oled_main(void) {

@@ -153,7 +153,14 @@ else()
   # CPU, you can find the list here:
   # https://gcc.gnu.org/onlinedocs/gcc/AVR-Options.html
   set(MCU_GCC attiny84a)
+
+  # Part for avrdude
+  # https://avrdudes.github.io/avrdude/8.0/avrdude_45.html#List-of-Parts
   set(MCU_DUDE t84a)
+
+  # ISR names:
+  # https://www.nongnu.org/avr-libc/user-manual/group__avr__interrupts.html
+
   # The programmer to use, read avrdude manual for list
   set(PROG_TYPE avrispmkII)
 
@@ -187,6 +194,7 @@ else()
     -mmcu=${MCU_GCC}
     -std=c99
     -Os
+    -flto
     -Wall
     -Wundef
     -pedantic

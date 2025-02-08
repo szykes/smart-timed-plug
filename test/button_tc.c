@@ -263,9 +263,17 @@ static bool tc_start_stop_shortest_long_push(void) {
   call_button_main(GPIO_BTN_START_STOP);
   TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_START_STOP_LONG, "");
 
-  button_interrupt();
-  call_button_main(GPIO_BTN_START_STOP);
-  TEST_ASSERT_EQ(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+  for (size_t i = 0; i < (LONG_CNT + 1); i++) {
+    button_interrupt();
+    call_button_main(GPIO_BTN_START_STOP);
+    TEST_ASSERT_EQ_WITH_MOCK(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+  }
+
+  for (size_t i = 0; i < (LONG_CNT + 1); i++) {
+    button_interrupt();
+    call_button_main(0);
+    TEST_ASSERT_EQ_WITH_MOCK(button_is_pushed(), BUTTON_EVENT_RELEASED, "");
+  }
 
   TEST_END();
 }
