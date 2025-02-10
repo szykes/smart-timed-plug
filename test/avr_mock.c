@@ -13,11 +13,11 @@ void mcu_cli(void) {
 }
 
 uint8_t eeprom_load(size_t addr) {
-  MOCK_RECORD_1_PARAM_RET(TYPE_SIZE_T, addr, TYPE_UINT8_T, uint8_t);
+  MOCK_RECORD_1_PARAM_RET(size_t, addr, uint8_t);
 }
 
 void eeprom_store(size_t addr, uint8_t data) {
-  MOCK_RECORD_2_PARAM(TYPE_SIZE_T, addr, TYPE_UINT8_T, data);
+  MOCK_RECORD_2_PARAM(size_t, addr, uint8_t, data);
 }
 
 void gpio_init(void) {
@@ -25,7 +25,7 @@ void gpio_init(void) {
 }
 
 uint8_t gpio_inputs_get(void) {
-  MOCK_RECORD_RET(TYPE_UINT8_T, uint8_t);
+  MOCK_RECORD_RET(uint8_t);
 }
 
 void gpio_relay_set(void) {
@@ -69,7 +69,7 @@ void spi_init(void) {
 }
 
 void spi_send_byte(uint8_t byte) {
-  MOCK_RECORD_1_PARAM(TYPE_UINT8_T, byte);
+  MOCK_RECORD_1_PARAM(uint8_t, byte);
 }
 
 void wdt_init(void) {

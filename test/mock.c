@@ -24,11 +24,13 @@ void mock_clear_calls(void) {
     for (size_t i = 0; i < sizeof(curr->params)/sizeof(type_st); i++) {
       if (curr->params[i].value != NULL) {
 	free(curr->params[i].value);
+	free(curr->params[i].type);
       }
     }
 
     if (curr->ret.value != NULL) {
       free(curr->ret.value);
+      free(curr->ret.type);
     }
 
     free(curr);
@@ -120,12 +122,12 @@ static bool check_function_name(mock_call_st *mock_call, const char *function_na
 }
 
 static bool check_param(mock_call_st *mock_call, type_st *expected_param, size_t expected_param_idx, type_st *param) {
-  if (expected_param->type == TYPE_NONE) {
+  if (expected_param->type == NULL) {
     fill_result(mock_call, "No more parameters expected at function: %s(), parameter index: %d, param_type: %d", mock_call->function_name, expected_param_idx, param->type);
     return false;
   }
 
-  if (expected_param->type != param->type) {
+  if (strcmp(expected_param->type, param->type)) {
     fill_result(mock_call, "Wrong parameter type at function: %s(), parameter index: %d, expected: %d, got: %d", mock_call->function_name, expected_param_idx, expected_param->type, param->type);
     return false;
   }
@@ -158,7 +160,7 @@ static bool check_all_params(mock_call_st *mock_call, type_st *params, size_t no
   return true;
 }
 
-static void add_record(mock_call_st *mock_call, const char *function_name, type_st *params, size_t no_params, type_st *ret) {
+static void add_record(mock_call_st *mock_call, const char *function_name, type_st *params, size_t no_params, const char* recorded_ret_type, type_st *ret) {
   if (!check_function_name(mock_call, function_name)) {
     return;
   }
@@ -168,12 +170,17 @@ static void add_record(mock_call_st *mock_call, const char *function_name, type_
   }
 
   if (ret != NULL) {
-    if (mock_call->ret.type == TYPE_NONE) {
+    if (mock_call->ret.type == NULL) {
       fill_result(mock_call, "No return value expected at function: %s(), return type: %d", mock_call->function_name, ret->type);
       return;
     }
 
     memcpy(ret, &mock_call->ret, sizeof(mock_call->ret));
+
+    if (strcmp(recorded_ret_type, ret->type) != 0) {
+      fill_result(mock_call, "Mismatching return types at function: %s(), recorded return type: %s, expected return type: %s", mock_call->function_name, recorded_ret_type, ret->type);
+      return;
+    }
   }
 
   mock_call->is_matched = true;
@@ -195,13 +202,13 @@ static void print_mocks(void) {
   }
 }
 
-void __mock_record(const char *function_name, type_st *params, size_t no_params, type_st *ret) {
+void __mock_record(const char *function_name, type_st *params, size_t no_params, const char *recorded_ret_type, type_st *ret) {
   mock_call_st *curr;
   for (curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
     if (curr->is_called == false) {
       curr->is_called = true;
 
-      add_record(curr, function_name, params, no_params, ret);
+      add_record(curr, function_name, params, no_params, recorded_ret_type, ret);
 
       return;
     }

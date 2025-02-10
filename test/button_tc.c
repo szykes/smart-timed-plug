@@ -57,7 +57,7 @@ static void call_button_main(int16_t buttons) {
   MOCK_EXPECT("mcu_sei", "");
   if (buttons >= 0) {
     uint8_t btns = buttons;
-    MOCK_EXPECT_RET("gpio_inputs_get", TYPE_UINT8_T, btns, "");
+    MOCK_EXPECT_RET("gpio_inputs_get", uint8_t, btns, "");
   }
   button_main();
 }
