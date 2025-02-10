@@ -29,8 +29,6 @@ typedef struct mock_call_st {
   struct mock_call_st *next;
 } mock_call_st;
 
-extern mock_call_st *mock_calls_head;
-
 inline static char *strdup(const char *s) {
   size_t size = strlen(s) + 1;
   char *p = malloc(size);
@@ -45,6 +43,10 @@ inline static char *strdup(const char *s) {
   memcpy(dest, &data, sizeof(data));
 
 void mock_init(void);
+
+void mock_uninterested_call(const char *function_name);
+void mock_clear_all_uninterested_calls(void);
+
 void mock_clear_calls(void);
 
 // expect

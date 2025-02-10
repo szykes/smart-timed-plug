@@ -43,6 +43,7 @@ void own_log(const char *func, unsigned int line, const char *lvl, const char *f
 
 #define TEST_END()							\
   {									\
+    mock_clear_all_uninterested_calls();				\
     bool is_mock_succeeded = mock_is_succeeded();			\
     if (is_succeeded && is_mock_succeeded) {				\
       log_test("Test succeeded");					\

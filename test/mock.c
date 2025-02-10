@@ -7,14 +7,50 @@
 
 #include "framework.h"
 
-mock_call_st *mock_calls_head;
+typedef struct mock_uninterested_call_st {
+  char *func;
+  struct mock_uninterested_call_st *next;
+} mock_uninterested_call_st;
 
-static mock_call_st head = {
+static mock_uninterested_call_st *mock_uninterested_call_head;
+static mock_uninterested_call_st mock_uninterested_call_dummy_head = {
+  .next = NULL,
+};
+
+static mock_call_st *mock_calls_head;
+static mock_call_st mock_calls_dummy_head = {
   .next = NULL,
 };
 
 void mock_init(void) {
-  mock_calls_head = &head;
+  mock_calls_head = &mock_calls_dummy_head;
+  mock_uninterested_call_head = &mock_uninterested_call_dummy_head;
+}
+
+void mock_uninterested_call(const char *function_name) {
+  mock_uninterested_call_st *curr;
+  curr = mock_uninterested_call_head;
+  for (; curr->next != NULL; ) {
+    curr = curr->next;
+  }
+
+  curr->next = malloc(sizeof(mock_uninterested_call_st));
+  memset(curr->next, 0, sizeof(mock_uninterested_call_st));
+  curr = curr->next;
+  curr->next = NULL;
+
+  curr->func = strdup(function_name);
+}
+
+void mock_clear_all_uninterested_calls(void) {
+  for (mock_uninterested_call_st *curr = mock_uninterested_call_head->next; curr != NULL;) {
+    mock_uninterested_call_st *next = curr->next;
+    free(curr->func);
+    free(curr);
+    curr = next;
+  }
+
+  mock_uninterested_call_head->next = NULL;
 }
 
 void mock_clear_calls(void) {
@@ -77,7 +113,22 @@ static mock_call_st * add_new_mock(const char *function_name, type_st *params, s
   return curr;
 }
 
+static bool is_uninterested_call(const char* function_name) {
+  mock_uninterested_call_st *curr;
+  for (curr = mock_uninterested_call_head->next; curr != NULL; curr = curr->next) {
+    if (strcmp(curr->func, function_name) == 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void __mock_initiate_expectation(const char *function_name, type_st *params, size_t no_params, type_st *ret, const char *func, unsigned int line, const char *fmt, ...) {
+  if (is_uninterested_call(function_name)) {
+    log_fail("Marked as uninterested call but an execptation initiated, function: %s()", function_name);
+    exit(1);
+  }
+
   mock_call_st *curr = add_new_mock(function_name, params, no_params, ret);
   if (curr == NULL) {
     log_fail("NULL ptr");
@@ -223,6 +274,10 @@ void __mock_record(const char *function_name, type_st *params, size_t no_params,
   mock_call_st *curr;
   for (curr = mock_calls_head->next; curr != NULL; curr = curr->next) {
     if (curr->is_called == false) {
+      if (is_uninterested_call(function_name)) {
+	return;
+      }
+
       curr->is_called = true;
 
       add_record(curr, function_name, params, no_params, recorded_ret_type, ret);
