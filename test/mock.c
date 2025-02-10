@@ -69,6 +69,9 @@ static mock_call_st * add_new_mock(const char *function_name, type_st *params, s
 
   if (ret != NULL) {
     curr->ret = *ret;
+    if (strcmp(curr->ret.type, MOCK_SKIP_T) == 0) {
+      log_error("Return type cannot be skipped, it must be a valid type, function: %s()", function_name);
+    }
   }
 
   return curr;
@@ -127,8 +130,17 @@ static bool check_param(mock_call_st *mock_call, type_st *expected_param, size_t
     return false;
   }
 
-  if (strcmp(expected_param->type, param->type)) {
-    fill_result(mock_call, "Wrong parameter type at function: %s(), parameter index: %d, expected: %d, got: %d", mock_call->function_name, expected_param_idx, expected_param->type, param->type);
+  if (strcmp(expected_param->type, MOCK_SKIP_T) == 0) {
+    return true;
+  }
+
+  if (strcmp(param->type, MOCK_SKIP_T) == 0) {
+    fill_result(mock_call, "If the param type at record is %s, the expected cannot be different at function: %s(), parameter: %d, expected: %s", MOCK_SKIP_T, mock_call->function_name, expected_param_idx, expected_param->type, param->type);
+    return false;
+  }
+
+  if (strcmp(expected_param->type, param->type) != 0) {
+    fill_result(mock_call, "Wrong parameter type at function: %s(), parameter: %d, expected: %s, got: %s", mock_call->function_name, expected_param_idx, expected_param->type, param->type);
     return false;
   }
 
@@ -176,6 +188,11 @@ static void add_record(mock_call_st *mock_call, const char *function_name, type_
     }
 
     memcpy(ret, &mock_call->ret, sizeof(mock_call->ret));
+
+    if (strcmp(recorded_ret_type, MOCK_SKIP_T) == 0) {
+      fill_result(mock_call, "Return type cannot be skipped, it must be valid type at function: %s()", mock_call->function_name);
+      return;
+    }
 
     if (strcmp(recorded_ret_type, ret->type) != 0) {
       fill_result(mock_call, "Mismatching return types at function: %s(), recorded return type: %s, expected return type: %s", mock_call->function_name, recorded_ret_type, ret->type);

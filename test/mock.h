@@ -56,10 +56,10 @@ void mock_clear_calls(void);
     void *ret_ptr;							\
     mock_prepare_param(ret_ptr, ret_value);				\
     type_st ret = {							\
+      .type = strdup(#ret_type),					\
       .value = ret_ptr,							\
       .size = sizeof(ret_value),					\
     };									\
-    ret.type = strdup(#ret_type);					\
     __mock_initiate_expectation(function_name, NULL, 0, &ret, __func__, __LINE__, fmt, ##__VA_ARGS__); \
   } while(0);
 
@@ -69,11 +69,11 @@ void mock_clear_calls(void);
     mock_prepare_param(param_1_ptr, param_1_value);			\
     type_st params[] = {						\
       {									\
+	 .type = strdup(#param_1_type),					\
          .value = param_1_ptr,						\
          .size = sizeof(param_1_value),		       			\
       }									\
     };									\
-    params[0].type = strdup(#param_1_type);				\
     __mock_initiate_expectation(function_name, params, sizeof(params) / sizeof(type_st), NULL, __func__, __LINE__, fmt, ##__VA_ARGS__); \
   } while(0);
 
@@ -85,16 +85,16 @@ void mock_clear_calls(void);
     mock_prepare_param(param_1_ptr, param_1_value);                     \
     type_st params[] = {						\
       {									\
+	 .type = strdup(#param_1_type),					\
          .value = param_1_ptr,						\
          .size = sizeof(param_1_value),		       			\
       }									\
     };									\
-    params[0].type = strdup(param_1_type);				\
     type_st ret = {                                                     \
+      .type = strdup(#ret_type),					\
       .value = ret_ptr,                                                 \
       .size = sizeof(ret_value),                                        \
     };                                                                  \
-    ret.type = strdup(#ret_type);					\
     __mock_initiate_expectation(function_name, params, sizeof(params) / sizeof(type_st), &ret, __func__, __LINE__, fmt, ##__VA_ARGS__); \
   } while(0);
 
@@ -106,18 +106,16 @@ void mock_clear_calls(void);
     mock_prepare_param(param_2_ptr, param_2_value);                     \
     type_st params[] = {						\
       {									\
-	 .type = strdup(param_1_type),					\
+	 .type = strdup(#param_1_type),					\
          .value = param_1_ptr,						\
          .size = sizeof(param_1_value),		       			\
       },								\
       {									\
-	 .type = strdup(param_2_type),					\
+	 .type = strdup(#param_2_type),					\
          .value = param_2_ptr,						\
          .size = sizeof(param_2_value),		       			\
       },								\
     };									\
-    params[0].type = strdup(#param_1_type);                             \
-    params[1].type = strdup(#param_2_type);                             \
     __mock_initiate_expectation(function_name, params, sizeof(params) / sizeof(type_st), NULL, __func__, __LINE__, fmt, ##__VA_ARGS__); \
   } while(0);
 
@@ -131,23 +129,21 @@ void mock_clear_calls(void);
     mock_prepare_param(param_2_ptr, param_2_value);                     \
     type_st params[] = {                                                \
       {                                                                 \
-	 .type = strdup(param_1_type),					\
+	 .type = strdup(#param_1_type),					\
          .value = param_1_ptr,                                          \
          .size = sizeof(param_1_value),                                 \
       },                                                                \
       {                                                                 \
-	 .type = strdup(param_2_type),					\
+	 .type = strdup(#param_2_type),					\
          .value = param_2_ptr,                                          \
          .size = sizeof(param_2_value),                                 \
       },                                                                \
     };                                                                  \
-    params[0].type = strdup(#param_1_type);                             \
-    params[1].type = strdup(#param_2_type);                             \
     type_st ret = {                                                     \
+      .type = strdup(#ret_type),					\
       .value = ret_ptr,                                                 \
       .size = sizeof(ret_value),                                        \
     };                                                                  \
-    ret.type = strdup(#ret_type);                                       \
     __mock_initiate_expectation(function_name, params, sizeof(params) / sizeof(type_st), &ret, __func__, __LINE__, fmt, ##__VA_ARGS__); \
   } while(0);
 
@@ -172,11 +168,11 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
   {									\
     type_st params[] = {						\
       {									\
+	 .type = strdup(#param_1_type),					\
          .value = &param_1_value,		       			\
          .size = sizeof(param_1_value),		       			\
       }									\
     };									\
-    params[0].type = strdup(#param_1_type);                             \
     __mock_record(__func__, params, sizeof(params) / sizeof(type_st), MOCK_SKIP_T, NULL); \
   } while(0);
 
@@ -186,11 +182,11 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
     ret.type = strdup(#ret_type);					\
     type_st params[] = {						\
       {									\
+	 .type = strdup(#param_1_type),					\
          .value = &param_1_value,		       			\
          .size = sizeof(param_1_value),		       			\
       }									\
     };									\
-    params[0].type = strdup(#param_1_type);                             \
     __mock_record(__func__, params, sizeof(params) / sizeof(type_st), #ret_type, &ret); \
     if (strcmp(ret.type, #ret_type) == 0) {				\
       return *((ret_type*)ret.value);                                   \
@@ -212,8 +208,6 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
          .size = sizeof(param_2_value),		       			\
       },								\
     };									\
-    params[0].type = strdup(#param_1_type);                             \
-    params[1].type = strdup(#param_2_type);                             \
     __mock_record(__func__, params, sizeof(params) / sizeof(type_st), MOCK_SKIP_T, NULL); \
   } while(0);
 
@@ -233,8 +227,6 @@ void __mock_initiate_expectation(const char *function_name, type_st *params, siz
          .size = sizeof(param_2_value),		       			\
       },								\
     };									\
-    params[0].type = strdup(#param_1_type);                             \
-    params[1].type = strdup(#param_2_type);                             \
     __mock_record(__func__, params, sizeof(params) / sizeof(type_st), #ret_type, &ret); \
     if (strcmp(ret.type, #ret_type) == 0) {				\
       return *((ret_type*)ret.value);					\
