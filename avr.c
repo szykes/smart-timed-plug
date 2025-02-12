@@ -93,7 +93,7 @@ void gpio_oled_cs_reset(void) {
   PORTB &= ~(1 << PORT1);
 }
 
-ISR(TIM1_COMPA_vect) {
+ISR(TIM1_COMPA_vect, ISR_BLOCK) {
   button_interrupt();
   time_interrupt();
 }

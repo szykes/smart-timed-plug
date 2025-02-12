@@ -175,6 +175,9 @@ else()
   set(CMAKE_C_COMPILER avr-gcc)
   set(CMAKE_ASM_COMPILER avr-gcc)
 
+  set(AVR_LIBC_PROJECT_PATH ${CMAKE_SOURCE_DIR}/avr-libc)
+  set(AVR_LIBC_PATH ${AVR_LIBC_PROJECT_PATH}/install-dir)
+
   project(smart-timed-plug C)
 
   add_executable(smart-timed-plug
@@ -184,10 +187,18 @@ else()
     oled.c
     oled_bitmap.c
     main.c
+
+    ${AVR_LIBC_PATH}/avr/include/stdlib.h
   )
 
+  target_compile_definitions(smart-timed-plug PUBLIC
+    -DF_CPU=${F_CPU}
+  )
+
+  # building avr-libc: https://avrdudes.github.io/avr-libc/avr-libc-user-manual/install_tools.html
   target_include_directories(smart-timed-plug PUBLIC
-    /usr/lib/avr/include
+    ${AVR_LIBC_PATH}/avr/include
+    ${AVR_LIBC_PATH}/include
   )
 
   target_compile_options(smart-timed-plug PUBLIC
@@ -206,11 +217,10 @@ else()
     -fdata-sections
   )
 
-  target_compile_definitions(smart-timed-plug PUBLIC
-    -DF_CPU=${F_CPU}
+  target_link_options(smart-timed-plug PUBLIC
+    -mmcu=${MCU_GCC}
+    --sysroot=${AVR_LIBC_PATH}/avr/
   )
-
-  target_link_options(smart-timed-plug PUBLIC -mmcu=${MCU_GCC})
 
   set_target_properties(smart-timed-plug PROPERTIES OUTPUT_NAME smart-timed-plug.elf)
 
@@ -218,6 +228,18 @@ else()
     DEPENDS $<TARGET_FILE:smart-timed-plug>
     COMMAND avr-size -C $<TARGET_FILE:smart-timed-plug> --mcu=${MCU_GCC}
   )
+
+  add_custom_command(
+    OUTPUT ${AVR_LIBC_PATH}/avr/include/stdlib.h
+    DEPENDS build-avr-libc
+  )
+
+  add_custom_command(
+    OUTPUT ${AVR_LIBC_PATH}/bin/avr-man # this is the last built file of the avr-libc building process
+    COMMAND ./bootstrap && ./configure --prefix=${AVR_LIBC_PATH} --build=x86_64-pc-linux-gnu --host=avr && make -j4 && make install
+    WORKING_DIRECTORY ${AVR_LIBC_PROJECT_PATH}
+  )
+  add_custom_target(build-avr-libc DEPENDS ${AVR_LIBC_PATH}/bin/avr-man)
 
   add_custom_target(hex ALL avr-objcopy -R .eeprom -O ihex smart-timed-plug.elf smart-timed-plug.hex DEPENDS smart-timed-plug)
 
@@ -227,4 +249,5 @@ else()
   add_custom_target(download-eeprom avrdude -c ${PROG_TYPE} -p ${MCU}  -U eeprom:r:readback.hex:i)
 
   add_custom_target(fuses avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U lfuse:w:${L_FUSE}:m -U hfuse:w:${H_FUSE}:m)
+
 endif()
