@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.28)
 set(CMAKE_EXPORT_COMPILE_COMMANDS on)
 
 if (TEST)
+  add_subdirectory(c-testing-and-mocking)
+
   project(smart-timed-plug-test C)
 
   add_library(common INTERFACE)
@@ -31,10 +33,11 @@ if (TEST)
     -fstack-clash-protection
   )
 
-  add_executable(button-test
-    test/framework.c
-    test/mock.c
+  target_link_libraries(common INTERFACE
+    c-testing-and-mocking
+  )
 
+  add_executable(button-test
     test/avr_mock.c
 
     test/button_tc.c
@@ -53,13 +56,8 @@ if (TEST)
   )
 
   add_executable(time-test
-    test/framework.c
-    test/mock.c
-
     test/avr_mock.c
     test/button_mock.c
-
-    #test/clock_common.c
 
     test/time_tc.c
 
@@ -77,9 +75,6 @@ if (TEST)
   )
 
   add_executable(oled-test
-    test/framework.c
-    test/mock.c
-
     test/avr_mock.c
     test/time_mock.c
 
@@ -102,9 +97,6 @@ if (TEST)
   )
 
   add_executable(oled-all-test
-    test/framework.c
-    test/mock.c
-
     test/avr_mock.c
     test/time_mock.c
 

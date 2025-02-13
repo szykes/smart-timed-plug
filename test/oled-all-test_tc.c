@@ -17,7 +17,7 @@ static bool tcs_all_progress(void) {
     char msg[50];
     snprintf(msg, sizeof(msg), "progress_in_pixels: %lu\n", i);
     uint16_t time = tc.progress_in_pixels;
-    MOCK_EXPECT_RET("time_get_for_display", TYPE_UINT16_T, time, msg);
+    MOCK_EXPECT_RET("time_get_for_display", uint16_t, time, msg);
 
     expect_print_progress(tc.progress_in_pixels, tc.disp_data, msg);
     expect_print_time(tc.disp_data, msg);
@@ -37,7 +37,7 @@ static bool tcs_all_time(void) {
     oled_gen_time_st tc = time_tcs[i];
     char msg[50];
     snprintf(msg, sizeof(msg), "time: %03lu\n", i);
-    MOCK_EXPECT_RET("time_get_for_display", TYPE_UINT16_T, tc.time, msg);
+    MOCK_EXPECT_RET("time_get_for_display", uint16_t, tc.time, msg);
 
     expect_print_progress(0, tc.disp_data, msg);
     expect_print_time(tc.disp_data, msg);
