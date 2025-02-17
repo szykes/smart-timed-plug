@@ -158,10 +158,27 @@ static void print_time(uint16_t time) {
   }
 }
 
-static void print_coffee(uint16_t time) {
-  uint8_t idx = time - TIME_STANDBY_START;
-  const uint8_t* ptr = (const uint8_t *)&bitmap_coffee[idx];
+/* static void print_coffee(uint16_t time) { */
+/*   uint8_t idx = time - TIME_STANDBY_START; */
+/*   const uint8_t* ptr = (const uint8_t *)&bitmap_coffee[idx]; */
 
+/*   for (uint16_t i = 0; i < (OLED_COLS * OLED_ROWS); i++) { */
+/*     uint8_t virt_row = i / OLED_COLS; */
+/*     uint8_t virt_col = i % OLED_COLS; */
+
+/*     if (virt_col == 0) { */
+/*       write_command(CMD_SET_PAGE_ADDR + virt_row); */
+/*     } */
+
+/* #ifdef __AVR__ */
+/*     write_data(pgm_read_byte(&ptr[i])); */
+/* #else */
+/*     write_data(ptr[i]); */
+/* #endif // __AVR__ */
+/*   } */
+/* } */
+
+static void print_nothing(void) {
   for (uint16_t i = 0; i < (OLED_COLS * OLED_ROWS); i++) {
     uint8_t virt_row = i / OLED_COLS;
     uint8_t virt_col = i % OLED_COLS;
@@ -170,11 +187,7 @@ static void print_coffee(uint16_t time) {
       write_command(CMD_SET_PAGE_ADDR + virt_row);
     }
 
-#ifdef __AVR__
-    write_data(pgm_read_byte(&ptr[i]));
-#else
-    write_data(ptr[i]);
-#endif // __AVR__
+    write_data(0x00);
   }
 }
 
@@ -208,13 +221,20 @@ void oled_init(void) {
 }
 
 void oled_main(void) {
+  static bool is_printed_nothing = false;
   uint16_t curr_time = time_get_for_display();
 
   if (prev_time != curr_time) {
     if (curr_time < TIME_STANDBY_START) {
       print_time(curr_time);
+      is_printed_nothing = false;
     } else {
-      print_coffee(curr_time);
+      // TODO: when there are good standby pictures, let's use the `print_coffee()`
+      if (!is_printed_nothing) {
+	print_nothing();
+      }
+      is_printed_nothing = true;
+      /* print_coffee(curr_time); */
     }
     prev_time = curr_time;
   }
