@@ -12,12 +12,12 @@ void mcu_cli(void) {
   MOCK_RECORD();
 }
 
-uint8_t eeprom_load(size_t addr) {
-  MOCK_RECORD_1_PARAM_RET(size_t, addr, uint8_t);
+uint16_t eeprom_load(uint16_t *addr) {
+  MOCK_RECORD_1_PARAM_RET(uint16_t*, addr, uint16_t);
 }
 
-void eeprom_store(size_t addr, uint8_t data) {
-  MOCK_RECORD_2_PARAM(size_t, addr, uint8_t, data);
+void eeprom_store(uint16_t *addr, uint16_t data) {
+  MOCK_RECORD_2_PARAM(uint16_t*, addr, uint16_t, data);
 }
 
 void gpio_init(void) {

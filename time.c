@@ -3,6 +3,10 @@
 #include "avr.h"
 #include "button.h"
 
+#ifdef __AVR__
+#include <avr/eeprom.h>
+#endif // __AVR__
+
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,7 +49,11 @@ typedef enum {
 // The time_set contains the time period for how long the relay turns on
 // in tenth of a second. So, 150 means 15,0 seconds.
 // TODO: make it EEPROM compatible
-static uint16_t base_time = 150u;
+static uint16_t
+#ifdef __AVR__
+    EEMEM
+#endif // __AVR__
+base_time = 150u;
 static bool is_changed_base_time;
 static uint16_t time_cnt;
 static time_state_e time_cnt_state;
@@ -62,17 +70,12 @@ static uint16_t cnt_playing_pics_standby = TIME_STANDBY_START;
 static bool is_first_button_plus_minus_pushed;
 
 static void load_base_time(void) {
-  uint16_t temp;
-  temp = eeprom_load(START_ADDR_BASE_TIME) << CHAR_BIT;
-  temp |= eeprom_load(START_ADDR_BASE_TIME + 1);
-
-  base_time = (temp > MAX_TIME ? base_time : temp);
+  base_time = eeprom_load(&base_time);
 }
 
 static void store_base_time(void) {
   if (is_changed_base_time) {
-    eeprom_store(START_ADDR_BASE_TIME, base_time >> CHAR_BIT);
-    eeprom_store(START_ADDR_BASE_TIME + 1, base_time);
+    eeprom_store(&base_time, base_time);
     is_changed_base_time = false;
   }
 }

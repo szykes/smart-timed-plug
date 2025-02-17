@@ -15,8 +15,8 @@ void hw_init(void);
 void mcu_sei(void);
 void mcu_cli(void);
 
-uint8_t eeprom_load(size_t addr);
-void eeprom_store(size_t addr, uint8_t data);
+void eeprom_store(uint16_t *addr, uint16_t value);
+uint16_t eeprom_load(uint16_t *addr);
 
 uint8_t gpio_inputs_get(void);
 
