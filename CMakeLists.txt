@@ -159,7 +159,7 @@ else()
   # AVR Fuses, must be in concordance with your hardware and F_CPU
   # https://www.engbedded.com/fusecalc/
   set(L_FUSE 0xE2)
-  set(H_FUSE 0xDF)
+  set(H_FUSE 0xD7)
 
   set(CMAKE_SYSTEM_NAME Generic)
   set(CMAKE_SYSTEM_PROCESSOR avr)
@@ -231,15 +231,35 @@ else()
     COMMAND ./bootstrap && ./configure --prefix=${AVR_LIBC_PATH} --build=x86_64-pc-linux-gnu --host=avr && make -j4 && make install
     WORKING_DIRECTORY ${AVR_LIBC_PROJECT_PATH}
   )
-  add_custom_target(build-avr-libc DEPENDS ${AVR_LIBC_PATH}/bin/avr-man)
+  add_custom_target(build-avr-libc
+    DEPENDS ${AVR_LIBC_PATH}/bin/avr-man
+  )
 
-  add_custom_target(hex ALL avr-objcopy -R .eeprom -O ihex smart-timed-plug.elf smart-timed-plug.hex DEPENDS smart-timed-plug)
+  add_custom_command(
+    OUTPUT smart-timed-plug.flash.hex
+    DEPENDS smart-timed-plug
+    COMMAND avr-objcopy -R .eeprom -O ihex smart-timed-plug.elf smart-timed-plug.flash.hex
+  )
 
-  add_custom_target(upload avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U flash:w:smart-timed-plug.hex DEPENDS hex)
+  add_custom_command(
+    OUTPUT smart-timed-plug.eep.hex
+    DEPENDS smart-timed-plug
+    COMMAND avr-objcopy -j .eeprom --change-section-lma .eeprom=0 -O ihex smart-timed-plug.elf smart-timed-plug.eep.hex
+  )
 
-  add_custom_target(upload-eeprom avrdude -c ${PROG_TYPE} -p ${MCU}  -U eeprom:w:eeprom.hex:i)
-  add_custom_target(download-eeprom avrdude -c ${PROG_TYPE} -p ${MCU}  -U eeprom:r:readback.hex:i)
+  add_custom_target(upload
+    DEPENDS smart-timed-plug.flash.hex
+    COMMAND avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U flash:w:smart-timed-plug.flash.hex
+  )
 
-  add_custom_target(fuses avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U lfuse:w:${L_FUSE}:m -U hfuse:w:${H_FUSE}:m)
+  add_custom_target(upload-w-eeprom
+    DEPENDS smart-timed-plug.flash.hex
+    DEPENDS smart-timed-plug.eep.hex
+    COMMAND avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U flash:w:smart-timed-plug.flash.hex -U eeprom:w:smart-timed-plug.eep.hex
+  )
+
+  add_custom_target(fuses
+    COMMAND avrdude -c ${PROG_TYPE} -p ${MCU_DUDE} -U lfuse:w:${L_FUSE}:m -U hfuse:w:${H_FUSE}:m
+  )
 
 endif()
