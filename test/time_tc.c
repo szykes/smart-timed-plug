@@ -75,12 +75,9 @@ static void call_main(button_event_e buttons, relay_state_e relay, main_state_e 
   MOCK_EXPECT("mcu_sei", msg);
 
   if (eeprom >= 0) {
-    size_t addr = START_ADDR_BASE_TIME;
-    uint8_t data = (eeprom >> CHAR_BIT) & 0xFF;
-    MOCK_EXPECT_2_PARAM("eeprom_store", mock_skip, addr, uint8_t, data, msg);
-    addr = START_ADDR_BASE_TIME + 1;
-    data = eeprom & 0xFF;
-    MOCK_EXPECT_2_PARAM("eeprom_store", size_t, addr, uint8_t, data, msg);
+    mock_skip addr = 0;
+    uint16_t data = eeprom;
+    MOCK_EXPECT_2_PARAM("eeprom_store", mock_skip, addr, uint16_t, data, msg);
   }
 
   if (main == MAIN_TICKING) {
@@ -93,12 +90,9 @@ static void call_main(button_event_e buttons, relay_state_e relay, main_state_e 
 static bool tc_init(void) {
   TEST_BEGIN();
 
-  size_t addr = START_ADDR_BASE_TIME;
-  uint8_t data = (DEFAULT_TIME >> CHAR_BIT) & 0xFF;
-  MOCK_EXPECT_1_PARAM_RET("eeprom_load", size_t, addr, uint8_t, data, "");
-  addr = START_ADDR_BASE_TIME + 1;
-  data = DEFAULT_TIME & 0xFF;
-  MOCK_EXPECT_1_PARAM_RET("eeprom_load", size_t, addr, uint8_t, data, "");
+  mock_skip addr = 0;
+  uint16_t data = DEFAULT_TIME;
+  MOCK_EXPECT_1_PARAM_RET("eeprom_load", mock_skip, addr, uint16_t, data, "");
 
   time_init();
 

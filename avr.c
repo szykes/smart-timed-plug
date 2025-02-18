@@ -2,6 +2,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/eeprom.h>
 #include <avr/wdt.h>
 
 #include "button.h"
@@ -41,20 +42,12 @@ void mcu_cli(void) {
   cli();
 }
 
-uint8_t eeprom_load(size_t addr) {
-  while(EECR & (1<<EEPE));
-  EEAR = addr;
-  EECR |= (1<<EERE);
-  return EEDR;
+void eeprom_store(uint16_t *addr, uint16_t value) {
+  eeprom_write_word(addr, value);
 }
 
-void eeprom_store(size_t addr, uint8_t data) {
-  while(EECR & (1<<EEPE));
-  EECR = (0<<EEPM1) | (0<<EEPM0);
-  EEAR = addr;
-  EEDR = data;
-  EECR |= (1<<EEMPE);
-  EECR |= (1<<EEPE);
+uint16_t eeprom_load(uint16_t *addr) {
+  return eeprom_read_word(addr);
 }
 
 uint8_t gpio_inputs_get(void) {
