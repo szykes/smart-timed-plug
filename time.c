@@ -53,7 +53,8 @@ static uint16_t
 #ifdef __AVR__
     EEMEM
 #endif // __AVR__
-base_time = 150u;
+base_time_addr = 150u;
+static uint16_t base_time;
 static bool is_changed_base_time;
 static uint16_t time_cnt;
 static time_state_e time_cnt_state;
@@ -70,12 +71,12 @@ static uint16_t cnt_playing_pics_standby = TIME_STANDBY_START;
 static bool is_first_button_plus_minus_pushed;
 
 static void load_base_time(void) {
-  base_time = eeprom_load(&base_time);
+  base_time = eeprom_load(&base_time_addr);
 }
 
 static void store_base_time(void) {
   if (is_changed_base_time) {
-    eeprom_store(&base_time, base_time);
+    eeprom_store(&base_time_addr, base_time);
     is_changed_base_time = false;
   }
 }
