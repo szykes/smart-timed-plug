@@ -34,7 +34,7 @@
 
 #define CNT_FOR_RESET ((2 * SEC) / LIMIT_WAITING_AT_END)
 #define CNT_FOR_CHANGING_TIME_SLOW_PERIOD ((2 * SEC) / LIMIT_CHANGING_TIME_SLOW)
-#define CNT_FOR_STANDBY ((120 * SEC) / LIMIT_WAITING_STANDBY)
+#define CNT_FOR_STANDBY (((uint32_t) 120 * SEC) / LIMIT_WAITING_STANDBY)
 
 typedef enum {
   TIME_RESET = 0,
@@ -127,7 +127,7 @@ static void do_action_at_tick(button_event_e pushed_button) {
   if (time_cnt_state == TIME_DECREASING) {
     decrement_time_cnt();
   } else if (time_cnt_state == TIME_END) {
-    if (cnt_for_reset < (CNT_FOR_RESET - 1)) {
+    if (cnt_for_reset < CNT_FOR_RESET) {
       cnt_for_reset++;
     } else {
       cnt_for_reset = 0;
@@ -150,7 +150,7 @@ static void do_action_at_tick(button_event_e pushed_button) {
 
     if (time_cnt_state == TIME_PAUSED ||
 	time_cnt_state == TIME_RESET) {
-      if (cnt_for_standby < (CNT_FOR_STANDBY - 1)) {
+      if (cnt_for_standby < CNT_FOR_STANDBY) {
 	cnt_for_standby++;
       } else {
 	time_cnt = base_time;
