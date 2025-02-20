@@ -10,9 +10,22 @@
 
 void hw_init(void) {
   // GPIO
-  DDRA = (1 << DD3) | (1 << DD4 /* SCK */) | (1 << DD5 /* DO */) | (1 << DD7);
-  PORTA = (1 << PORT0) | (1 << PORT1) | (1 << PORT2);
-  DDRB = (1 << DD0) | (1 << DD1);
+
+  // PORTA:
+  // - A0 - out - relay
+  // - A1 - out - OLED CS
+  // - A2 - out - OLED D/C
+  // - A3 - out - OLED RES
+  // - A4 - out - OLED clock
+  // - A5 - out - OLED data
+
+  // PORTB:
+  // - B0 - in - plus button
+  // - B1 - in - minus button
+  // - B2 - in - start/stop button
+
+  DDRA = (1 << DD0) | (1 << DD1) | (1 << DD2) | (1 << DD3) | (1 << DD4 /* SCK */) | (1 << DD5 /* DO */);
+  PORTB = (1 << PB0) | (1 << PB1) | (1 << PB2);
 
   // Timer 1
   // Calculate the OCR1A value for the desired interval
@@ -51,15 +64,15 @@ uint16_t eeprom_load(uint16_t *addr) {
 }
 
 uint8_t gpio_inputs_get(void) {
-  return (~PINA) & ((1 << PIN0) | (1 << PIN1) | (1 << PIN2));
+  return (~PINB) & ((1 << PIN0) | (1 << PIN1) | (1 << PIN2));
 }
 
 void gpio_relay_set(void) {
-  PORTB |= (1 << PORT0);
+  PORTA |= (1 << PORT0);
 }
 
 void gpio_relay_reset(void) {
-  PORTB &= ~(1 << PORT0);
+  PORTA &= ~(1 << PORT0);
 }
 
 void gpio_oled_reset_set(void) {
@@ -71,19 +84,19 @@ void gpio_oled_reset_reset(void) {
 }
 
 void gpio_oled_dc_set(void) {
-  PORTA |= (1 << PORT7);
+  PORTA |= (1 << PORT2);
 }
 
 void gpio_oled_dc_reset(void) {
-  PORTA &= ~(1 << PORT7);
+  PORTA &= ~(1 << PORT2);
 }
 
 void gpio_oled_cs_set(void) {
-  PORTB |= (1 << PORT1);
+  PORTA |= (1 << PORT1);
 }
 
 void gpio_oled_cs_reset(void) {
-  PORTB &= ~(1 << PORT1);
+  PORTA &= ~(1 << PORT1);
 }
 
 ISR(TIM1_COMPA_vect, ISR_BLOCK) {
