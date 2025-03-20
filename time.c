@@ -71,7 +71,8 @@ static uint16_t cnt_playing_pics_standby = TIME_STANDBY_START;
 static bool is_first_button_plus_minus_pushed;
 
 static void load_base_time(void) {
-  base_time = eeprom_load(&base_time_addr);
+  uint16_t temp = eeprom_load(&base_time_addr);
+  base_time = (temp <= MAX_TIME ? temp : MAX_TIME);
 }
 
 static void store_base_time(void) {
