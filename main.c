@@ -7,10 +7,10 @@
 
 int main()
 {
-  mcu_sei();
   hw_init();
   time_init();
   oled_init();
+  mcu_sei();
 
   while(1) {
     button_main();
