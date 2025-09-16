@@ -7,9 +7,11 @@ Additional Features:
 - After a period of inactivity, the unit enters sleep mode and the display turns off. Pressing the Start/Stop button once exits sleep mode, powers the unit, and starts the timer.
 
 Default state, when the full time appears on the screen:
+<br/>
 <img src="https://github.com/user-attachments/assets/956c328f-bd76-46b6-a205-6851927bef10" width="250">
 
 There is a nice progress bar to indicate, how much time is left:
+<br/>
 <img src="https://github.com/user-attachments/assets/e2ce9592-6d70-4c3a-bb53-230cac80aac5" width="250">
 
 The display is an OLED (128x64 px) based on SSD1309.
